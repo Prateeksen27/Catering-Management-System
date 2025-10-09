@@ -6,6 +6,7 @@ import authRoutes from './routes/user.auth.js'
 import clientRoutes from './routes/client.routes.js'
 import bookingRoutes from './routes/booking.routes.js'
 import employeeRoutes from './routes/employees.routes.js'
+import menuRoutes from './routes/menu.routes.js'
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 dotenv.config();
@@ -23,6 +24,7 @@ app.use('/api/auth',authRoutes);
 app.use('/api/client',clientRoutes)
 app.use('/api/booking',bookingRoutes)
 app.use('/api/employees',employeeRoutes)
+app.use("/api/menu",menuRoutes)
 mongoose.connect(process.env.URI).then(()=>{
   console.log("Connected to MongoDB");
 })

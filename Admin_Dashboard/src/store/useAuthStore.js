@@ -20,7 +20,7 @@ export const useAuthStore = create(
             empType,
           });
           set({ user: response.data.user, isAuthenticated: true });
-          toast.success(`Welcome to CMS, ${response.data.user.username}!`);
+          toast.success(`Welcome to CMS, ${response.data.user.name}!`);
           set({ isLoading: false })
         } catch (error) {
           set({ isLoading: false })
