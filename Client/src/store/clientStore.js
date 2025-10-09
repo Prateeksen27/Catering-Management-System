@@ -5,6 +5,12 @@ import { toast } from "react-hot-toast";
 export const clientAuthStore = create((set) => ({
   estimatedPrice: 0,
   isLoading: false,
+  menu: {
+    appetizers: [],
+    mains: [],
+    desserts: [],
+    beverages: [],
+  },
   setEstimatedPrice: (price) => set({ estimatedPrice: price }),
 
   sendQuery: async (data) => {
@@ -40,6 +46,18 @@ export const clientAuthStore = create((set) => ({
       toast.error(error.response?.data?.message || "Unexpected error occurred!");
       set({ isLoading: false });
     }
+  },
+  fetchMenu: async () => {
+    set({ isLoading: true });
+    try {
+      const res = await axiosInstance.get("/menu/getMenu");
+      set({ menu: res.data.data, isLoading: false });
+    } catch (error) {
+      console.log("Error fetching menu", error);
+      toast.error("Error occurred while fetching");
+      set({ isLoading: false });
+    }
   }
+
 
 }));
