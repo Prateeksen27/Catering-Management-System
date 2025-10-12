@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { 
   Calendar, 
   Users, 
@@ -97,9 +97,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
+            <Link to='/' >
             <div className="w-10 h-10 bg-primary p-4 rounded-md flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">CMS</span>
             </div>
+            </Link>
             <span className="font-semibold text-foreground">Admin</span>
           </div>
           <Button

@@ -22,6 +22,7 @@ import SignInPage from "./pages/AuthPages/SignInPage";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/useAuthStore";
 import ProtectedRoute from "./components/ProtectedRoutes/ProtectedRoutes";
+import EmployeeProfile from "./pages/Profile";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -120,6 +121,14 @@ const App = () => {
               </DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+              <DashboardLayout>
+                <EmployeeProfile />
+              </DashboardLayout>
+              </ProtectedRoute>
+            }
+            />
             <Route path='/login' element={
               isAuthenticated?
                <Navigate to="/"  />:

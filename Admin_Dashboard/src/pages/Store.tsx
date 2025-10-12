@@ -354,23 +354,32 @@ const Store: React.FC = () => {
                         </p>
                       </div>
 
-                      <div className="bg-muted rounded-full h-2 mt-2">
-                        <div
-                          className={`h-2 rounded-full ${item.status === "out-of-stock"
-                              ? "bg-destructive"
-                              : item.status === "low-stock"
-                                ? "bg-warning"
-                                : "bg-success"
-                            }`}
-                          style={{
-                            width: `${getStockLevel(
-                              item.current_stock,
-                              item.min_stock,
-                              item.total_stock
-                            )}%`,
-                          }}
-                        ></div>
+                      <div className="flex items-center gap-2 mt-2">
+                        {/* Progress Bar */}
+                        <div className="bg-muted rounded-full h-2 flex-1 relative">
+                          <div
+                            className={`h-2 rounded-full ${item.status === "out-of-stock"
+                                ? "bg-destructive"
+                                : item.status === "limited-stock"
+                                  ? "bg-warning"
+                                  : "bg-success"
+                              }`}
+                            style={{
+                              width: `${getStockLevel(
+                                item.current_stock,
+                                item.min_stock,
+                                item.total_stock
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+
+                        {/* Total Stock Label */}
+                        <span className="text-sm text-muted-foreground font-medium">
+                          {item.total_stock}
+                        </span>
                       </div>
+
 
                       <div className="flex justify-end gap-2 mt-3">
                         <Button
