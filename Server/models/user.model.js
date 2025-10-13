@@ -67,6 +67,10 @@ const EmployeeSchema = new mongoose.Schema(
     password: {
       type: String,
     },
+    profilePic:{
+      type:String,
+      default:"",
+    },
   },
   { timestamps: true }
 );

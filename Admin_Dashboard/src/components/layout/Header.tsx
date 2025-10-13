@@ -20,7 +20,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const {logout,user} = useAuthStore()
-  const details = user.user
+  const details = user
   return (
     <header className="bg-card border-b border-border px-4 py-3 lg:px-6">
       <div className="flex items-center justify-between">
@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2 px-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-user.jpg" alt="sambit" />
+                  <AvatarImage src={details.profilePic} alt="sambit" />
                   <AvatarFallback>
                     {(details.name &&
                         details.name

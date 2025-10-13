@@ -17,7 +17,8 @@ app.use(cors({
   origin: ["http://localhost:8080","http://localhost:5173","http://localhost:8081"],
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));   // ✅ Increase JSON body limit
+app.use(express.urlencoded({ limit: '10mb', extended: true })); // ✅ For form data
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 
