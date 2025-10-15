@@ -28,7 +28,8 @@ const BookingPending: React.FC = () => {
 
   useEffect(() => {
     fetchAllPendingBookings()
-  }, [pendingBookings.length])
+  }, [pendingBookings])
+  
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'High':
