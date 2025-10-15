@@ -33,5 +33,18 @@ export const useEmployeeStore = create((set) => ({
             set({isLoading:false})
             
         }
+    },
+    deleteEmployee:async (id)=>{
+        const loadingToastId = toast.loading("Deleting...please don't refresh");
+        try {
+            const responce = await axiosInstance.delete(`/employees/deleteEmployee/${id}`);
+            toast.success("Employee Deleted Successfully", { id: loadingToastId });
+            set((state) => ({
+                employees: state.employees.filter((emp) => emp._id !== id)
+            }));
+        } catch (error) {
+            console.log("Employee Deletion Error", error);
+            toast.error(error.response?.data?.message || "Error Deleting Employee", { id: loadingToastId });
+        }
     }
 }))

@@ -10,3 +10,14 @@ export const fetchAllEmployees = async(req,res)=>{
         
     }
 }
+
+export const deleteEmployee = async(req,res)=>{
+    const {id} = req.params
+    try {
+        await Employee.findByIdAndDelete(id)
+        res.status(200).json({message:"Employee Deleted Successfully"})
+    } catch (error) {
+        console.log("Error Deleting Employee",error);
+        res.status(500).json({message:"Internal Server Error"})
+    }
+}

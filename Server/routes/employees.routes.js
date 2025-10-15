@@ -1,7 +1,8 @@
 import express from 'express'
-import { fetchAllEmployees } from '../controllers/employees.controller.js'
+import { fetchAllEmployees,deleteEmployee } from '../controllers/employees.controller.js'
 
 const router = express.Router()
 router.get('/fetchEmployees',fetchAllEmployees)
+router.delete('/deleteEmployee/:id',deleteEmployee)
 
 export default router

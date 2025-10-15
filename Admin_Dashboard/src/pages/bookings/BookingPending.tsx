@@ -1,13 +1,31 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clock, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useBookingStore } from '../../store/useBookingStore';
 import { IconCurrencyRupee } from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
+import { Modal } from '@mantine/core';
+import BookingAssign from '../../components/BookComponent/BookingAssign';
 
 const BookingPending: React.FC = () => {
   const { fetchAllPendingBookings, pendingBookings } = useBookingStore()
+  const [opened, { open, close }] = useDisclosure(false); 
+  const [details,setDetails] = useState({
+    name:"",
+    eventName:"",
+    phone:0
+  })
+  const handleBookingAssign = (booking)=>{
+    setDetails({
+      name:booking.clientDetails.fullName,
+      eventName:booking.eventDetails.eventName,
+      phone:booking.clientDetails.phone
+    })
+    open()
+  }
+
   useEffect(() => {
     fetchAllPendingBookings()
   }, [pendingBookings.length])
@@ -35,6 +53,16 @@ const BookingPending: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={details.eventName + " - " + details.name + " (" + details.phone + ")"}
+        fullScreen
+        radius={0}
+        transitionProps={{ transition: 'fade', duration: 200 }}
+      >
+        <BookingAssign />
+      </Modal>
       <div>
         <h1 className="text-3xl font-bold text-foreground">Pending Bookings</h1>
         <p className="text-muted-foreground">Bookings awaiting confirmation or action</p>
@@ -54,7 +82,7 @@ const BookingPending: React.FC = () => {
                   <p className="text-muted-foreground">Client: {booking.clientDetails.fullName}/Phone:{booking.clientDetails.phone} </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-foreground flex items-center justify-center"><IconCurrencyRupee />{booking.estimatedAmount*(booking.eventDetails.pax+10)}</p>
+                  <p className="text-2xl font-bold text-foreground flex items-center justify-center"><IconCurrencyRupee />{booking.estimatedAmount * (booking.eventDetails.pax + 10)}</p>
                   <p className="text-sm text-muted-foreground">Estimated Value</p>
                 </div>
               </div>
@@ -103,7 +131,7 @@ const BookingPending: React.FC = () => {
                     <X className="h-4 w-4 mr-2" />
                     Decline
                   </Button>
-                  <Button size="sm">
+                  <Button size="sm" onClick={()=>handleBookingAssign(booking)} >
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Approve
                   </Button>

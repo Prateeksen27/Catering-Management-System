@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '../../store/useAuthStore';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -79,6 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       path: '/tables'
     }
   ];
+  const {user} = useAuthStore()
   return (
     <>
       {/* Mobile overlay */}
@@ -102,7 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <span className="text-primary-foreground font-bold text-sm">CMS</span>
             </div>
             </Link>
-            <span className="font-semibold text-foreground">Admin</span>
+            <span className="font-semibold text-foreground">{user.empType}</span>
           </div>
           <Button
             variant="ghost"

@@ -42,7 +42,22 @@ export const login = async (req,res)=>{
     }
 }
 
-export const updateProfile = async (req, res) => {
+export const updateProfile = async (req,res)=>{
+  try {
+    const id = req.params.id
+    const updatedData = req.body;
+    const updatedUser = await Employee.findByIdAndUpdate(id, updatedData, { new: true });
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({success:true,message:"Profile Updated Successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export const updateProfilePic = async (req, res) => {
   try {
     const { profilePic } = req.body;
 

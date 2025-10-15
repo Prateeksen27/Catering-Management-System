@@ -230,8 +230,8 @@ const Menu: React.FC = () => {
         </TabsList>
 
         {categories.map((category) => (
-          <TabsContent key={category.id} value={category.id} className="space-y-4">
-            <div className="grid gap-4">
+          <TabsContent key={category.id} value={category.id} className="space-y-4 pt-4">
+            <div className="flex flex-col md:flex-row gap-4">
               {(menu[category.id as keyof typeof menu] || []).map((item) => (
                 <Card
                   key={item._id || item.name}

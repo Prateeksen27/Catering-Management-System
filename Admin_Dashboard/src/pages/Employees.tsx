@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDisclosure } from '@mantine/hooks';
 import { Modal, Button, TextInput, NativeSelect } from '@mantine/core';
-import { IconAt, IconUser, IconUserCircle } from '@tabler/icons-react';
+import { IconAt, IconTrash, IconUser, IconUserCircle } from '@tabler/icons-react';
 import { useEmployeeStore } from '../store/useEmployeeStore';
 
 const Employees: React.FC = () => {
@@ -37,8 +37,8 @@ const Employees: React.FC = () => {
     empType: "Admin",
     email: ""
   })
-  const empTypes = ["Admin", "Manager", "Employee", "Driver"]
-  const { createNewEmployee, employees, isLoading, fetchAllEmployees } = useEmployeeStore()
+  const empTypes = [, "Manager", "Employee", "Driver","Worker"]
+  const { createNewEmployee, employees, isLoading, fetchAllEmployees,deleteEmployee } = useEmployeeStore()
   const handleAddEmployee = async () => {
     await createNewEmployee(data)
     close()
@@ -155,7 +155,7 @@ const Employees: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
-                    <AvatarImage src={employee.avatar} alt={employee.name} />
+                    <AvatarImage src={employee.profilePic} alt={employee.name} />
                     <AvatarFallback>
                       {(employee.name &&
                         employee.name
@@ -167,16 +167,13 @@ const Employees: React.FC = () => {
                       )?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <CardTitle className="flex items-center gap-3">
+                  <div className='flex flex-col'>
+                    <CardTitle className="flex items-center gap-2">
                       {employee.name}
                       {getStatusBadge(employee.status)}
                     </CardTitle>
                     <p className="text-muted-foreground">{employee.degn || "Not Updated"}</p>
-                    {/* <div className="flex items-center gap-2 mt-1">
-                      <div className={`w-3 h-3 rounded-full ${getDepartmentColor(employee.department)}`}></div>
-                      <span className="text-sm text-muted-foreground">{employee.department}</span>
-                    </div> */}
+                    <span className='text-muted-foreground text-xs'>Employee ID: {employee.empID}</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -214,7 +211,7 @@ const Employees: React.FC = () => {
 
               <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>Joined: {new Date(employee.joiningDate).toLocaleDateString()}</span>
-                <span>Employee ID: {employee.empID}</span>
+                <Button size="xs" leftSection={<IconTrash className='w-5 h-5' onClick={()=>deleteEmployee(employee._id)} />} variant="filled" color='red'>Delete Employee</Button>
               </div>
             </CardContent>
           </Card>

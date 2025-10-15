@@ -23,6 +23,7 @@ import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/useAuthStore";
 import ProtectedRoute from "./components/ProtectedRoutes/ProtectedRoutes";
 import EmployeeProfile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -125,6 +126,14 @@ const App = () => {
               <ProtectedRoute>
               <DashboardLayout>
                 <EmployeeProfile />
+              </DashboardLayout>
+              </ProtectedRoute>
+            }
+            />
+            <Route path="/userProfile" element={
+              <ProtectedRoute>
+              <DashboardLayout>
+                <UserProfile />
               </DashboardLayout>
               </ProtectedRoute>
             }

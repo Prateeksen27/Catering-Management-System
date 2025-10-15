@@ -68,12 +68,13 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+               <Link to='/userProfile'>
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
-                <Link to='/profile'>
+               
                 View profile
-                </Link>
               </DropdownMenuItem>
+                </Link>
               <DropdownMenuItem>
                 <HelpCircle className="mr-2 h-4 w-4" />
                 Support

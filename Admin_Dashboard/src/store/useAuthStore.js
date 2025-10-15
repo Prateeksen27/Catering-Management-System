@@ -29,8 +29,26 @@ export const useAuthStore = create(
           toast.error(error.response?.data?.message || "Login failed");
         }
       },
+      updateProfile:async (updatedData, userId) => {
+        const loadingToast = toast.loading("Updating profile...")
+        try {
+          if (!userId) {
+            toast.error("User ID not found. Please login again.",{id:loadingToast});
+            return;
+          }
+          const res = await axiosInstance.put(
+            `/auth/update-profile/${userId}`,
+            updatedData // ✅ Send as object
+          );
+          set({ user: res.data.user || res.data });
+          toast.success("Profile updated successfully",{id:loadingToast});
+        } catch (error) {
+          console.error("❌ Error in update profile:", error);
+          toast.error(error.response?.data?.message || "Profile update failed",{id:loadingToast});
+        }
+      },
 
-      updateProfile: async (profilePic, userId) => {
+      updateProfilePicture: async (profilePic, userId) => {
         const loadingToast = toast.loading("Updating profile...")
         try {
           if (!userId) {
