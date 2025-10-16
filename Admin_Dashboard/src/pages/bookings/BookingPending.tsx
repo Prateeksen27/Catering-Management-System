@@ -58,7 +58,7 @@ const BookingPending: React.FC = () => {
         opened={opened}
         onClose={close}
         title={details.eventName + " - " + details.name + " (" + details.phone + ")"}
-        fullScreen
+        size="70%"
         radius={0}
         transitionProps={{ transition: 'fade', duration: 200 }}
       >
