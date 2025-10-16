@@ -12,6 +12,7 @@ import BookingAssign from '../../components/BookComponent/BookingAssign';
 const BookingPending: React.FC = () => {
   const { fetchAllPendingBookings, pendingBookings } = useBookingStore()
   const [opened, { open, close }] = useDisclosure(false); 
+  const [isCancelled, setIsCancelled] = useState(false);
   const [details,setDetails] = useState({
     name:"",
     eventName:"",
