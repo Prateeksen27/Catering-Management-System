@@ -13,7 +13,8 @@ import {
   Eye,
   CheckCircle,
   Clock,
-  X
+  X,
+  Car
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -75,9 +76,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       path: '/store'
     },
     {
-      title: 'Tables',
-      icon: Table2,
-      path: '/tables'
+      title: 'Vehicles',
+      icon: Car,
+      path: '/vehicles'
     }
   ];
   const {user} = useAuthStore()

@@ -24,6 +24,7 @@ import { useAuthStore } from "./store/useAuthStore";
 import ProtectedRoute from "./components/ProtectedRoutes/ProtectedRoutes";
 import EmployeeProfile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
+import Vehicle from "./pages/vehicle";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -138,6 +139,15 @@ const App = () => {
               </ProtectedRoute>
             }
             />
+            <Route path="/vehicles" element={
+              <ProtectedRoute>
+              <DashboardLayout>
+                <Vehicle />
+              </DashboardLayout>
+              </ProtectedRoute>
+            }
+            />
+            
             <Route path='/login' element={
               isAuthenticated?
                <Navigate to="/"  />:

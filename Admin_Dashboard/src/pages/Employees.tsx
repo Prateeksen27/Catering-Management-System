@@ -37,7 +37,7 @@ const Employees: React.FC = () => {
     empType: "Admin",
     email: ""
   })
-  const empTypes = [, "Manager", "Employee", "Driver","Worker"]
+  const empTypes = [, "Manager", "Employee", "Driver","Worker","Chef"]
   const { createNewEmployee, employees, isLoading, fetchAllEmployees,deleteEmployee } = useEmployeeStore()
   const handleAddEmployee = async () => {
     await createNewEmployee(data)
