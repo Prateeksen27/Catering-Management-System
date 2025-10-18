@@ -15,7 +15,7 @@ const EmployeeSchema = new mongoose.Schema(
     },
     empType: {
       type: String,
-      enum: ["Admin", "Manager", "Employee", "Driver","Worker","Chef"],
+      enum: ["Admin", "Manager", "Driver","Worker","Chef"],
       required: true,
     },
     email: {

@@ -52,7 +52,6 @@ const BookingPending: React.FC = () => {
         return <Clock className="h-5 w-5 text-warning" />;
     }
   };
-
   return (
     <div className="space-y-6">
       <Modal

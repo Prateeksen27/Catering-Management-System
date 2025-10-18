@@ -10,9 +10,9 @@ const SignIn = () => {
     const [password, setPassword] = useState("");
     const [empType, setEmpType] = useState("Admin");
     const { login, isLoading } = useAuthStore()
+    const types = ["Admin", "Manager", "Driver","Worker","Chef"]
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        
         login(empID, password, empType)
     }
     return (
@@ -50,7 +50,7 @@ const SignIn = () => {
                     label: { color: "hsl(var(--foreground))" },
                 }}
             />
-            <NativeSelect value={empType} onChange={(e) => setEmpType(e.currentTarget.value)} label="Choose Type" withAsterisk data={['Admin', 'Manager', 'Employee']} />
+            <NativeSelect value={empType} onChange={(e) => setEmpType(e.currentTarget.value)} label="Choose Type" withAsterisk data={types} />
 
             {/* Options Row */}
             <div className="flex items-center justify-between mt-2">

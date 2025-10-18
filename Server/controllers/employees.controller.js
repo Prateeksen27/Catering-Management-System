@@ -31,7 +31,6 @@ export const getAllEmployeesGrouped = async (req,res)=>{
             workers:employees.filter(e => e.empType === "Worker"),
             drivers:employees.filter(e => e.empType === "Driver"),
             chefs:employees.filter(e => e.empType === "Chef"),
-            employee:employees.filter(e => e.empType === "Employee"),
         };
         res.status(200).json({ success:true , data:grouped });
     } catch (error) {
@@ -89,3 +88,4 @@ export const assignStaffToProject = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+

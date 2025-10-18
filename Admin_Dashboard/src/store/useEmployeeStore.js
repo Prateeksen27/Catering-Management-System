@@ -52,12 +52,10 @@ export const useEmployeeStore = create((set) => ({
 
     fetchEmployeesGrouped:async()=>{
         try {
-            const loadingToast = toast.loading("Fetching Staff...")
             const res = await axiosInstance.get('/employees/grouped');
             set({employeesGrouped:res.data.data});
-            toast.success("Staff Members loaded", { id: loadingToast })
         } catch (error) {
-            toast.error("Failed to fetch Staff ❌", { id: loadingToast });
+            toast.error("Failed to fetch Staff ❌");
         }
     },
 

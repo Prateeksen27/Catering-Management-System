@@ -25,10 +25,11 @@ export const register = async (req, res)=>{
 export const login = async (req,res)=>{
     const { empID, password,empType } = req.body;
     try{
-        const user = await Employee.find({empID});
+        const user = await Employee.find({empID,empType});
+        console.log(user);
         
         if (!user || user.length === 0) {
-            return res.status(404).json({ message: `${empType} with Id ${empId} not found` });
+            return res.status(404).json({ message: `${empType} with Id ${empID} not found` });
         }
         const isPasswordValid =  bcrypt.compare(password, user[0].password);
         if (!isPasswordValid) {

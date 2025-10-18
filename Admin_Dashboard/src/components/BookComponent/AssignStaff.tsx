@@ -75,18 +75,9 @@ const AssignStaff = ({ onSelect }) => {
         renderOption={renderOption}
         searchable
         hidePickedOptions
+        styles={{ dropdown: { maxHeight: 200, overflowY: 'auto' } }}
       />
 
-      <MultiSelect
-        label="Assign Employees"
-        placeholder="Select employees"
-        data={getDataForRole("employee")}  // now uses allEmployees
-        value={selected.employee}
-        onChange={(v) => handleChange("employee", v)}
-        renderOption={renderOption}
-        searchable
-        hidePickedOptions
-      />
 
       <MultiSelect
         label="Assign Workers"
@@ -97,6 +88,7 @@ const AssignStaff = ({ onSelect }) => {
         renderOption={renderOption}
         searchable
         hidePickedOptions
+        styles={{ dropdown: { maxHeight: 200, overflowY: 'auto' } }}
       />
 
       <MultiSelect
@@ -108,6 +100,7 @@ const AssignStaff = ({ onSelect }) => {
         renderOption={renderOption}
         searchable
         hidePickedOptions
+        styles={{ dropdown: { maxHeight: 200, overflowY: 'auto' } }}
       />
 
       <MultiSelect
@@ -119,6 +112,7 @@ const AssignStaff = ({ onSelect }) => {
         renderOption={renderOption}
         searchable
         hidePickedOptions
+        styles={{ dropdown: { maxHeight: 200, overflowY: 'auto' } }}
       />
     </Stack>
   );

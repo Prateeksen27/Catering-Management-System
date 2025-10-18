@@ -34,17 +34,17 @@ const Employees: React.FC = () => {
   const [opened, { open, close }] = useDisclosure(false)
   const [data, setData] = useState({
     name: "",
-    empType: "Admin",
+    empType: "Manager",
     email: ""
   })
-  const empTypes = [, "Manager", "Employee", "Driver","Worker","Chef"]
+  const empTypes = ["Manager", "Driver","Worker","Chef"]
   const { createNewEmployee, employees, isLoading, fetchAllEmployees,deleteEmployee } = useEmployeeStore()
   const handleAddEmployee = async () => {
     await createNewEmployee(data)
     close()
     setData({
       name: "",
-      empType: "",
+      empType: "Manager",
       email: ""
     })
     fetchAllEmployees();
@@ -211,7 +211,7 @@ const Employees: React.FC = () => {
 
               <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>Joined: {new Date(employee.joiningDate).toLocaleDateString()}</span>
-                <Button size="xs" leftSection={<IconTrash className='w-5 h-5' onClick={()=>deleteEmployee(employee._id)} />} variant="filled" color='red'>Delete Employee</Button>
+                <Button size="xs"  onClick={()=>deleteEmployee(employee._id)} leftSection={<IconTrash className='w-5 h-5' />} variant="filled" color='red'>Delete Employee</Button>
               </div>
             </CardContent>
           </Card>
