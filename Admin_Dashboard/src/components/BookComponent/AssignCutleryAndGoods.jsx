@@ -1,28 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MultiSelect, NumberInput, Group, Stack, Text, Box, Divider, Title, Paper } from '@mantine/core';
+import { useStoreItemsStore } from '../../store/useItemsStore';
 
-// Dummy store items (these mimic your MongoDB model)
-const storeItems = [
-  // Equipment
-  { name: 'Camera Kit', type: 'Photography', category: 'equipment', current_stock: 10 },
-  { name: 'Speaker Set', type: 'Audio Equipment', category: 'equipment', current_stock: 5 },
-  { name: 'LED Lights', type: 'Lighting', category: 'equipment', current_stock: 12 },
-
-  // Supplies
-  { name: 'Plates Set', type: 'Catering Supplies', category: 'supplies', current_stock: 100 },
-  { name: 'Serving Bowls', type: 'Catering Supplies', category: 'supplies', current_stock: 40 },
-  { name: 'Napkins', type: 'Catering Supplies', category: 'supplies', current_stock: 200 },
-
-  // Furniture
-  { name: 'Round Tables', type: 'Tables', category: 'furniture', current_stock: 10 },
-  { name: 'Wooden Chairs', type: 'Seating', category: 'furniture', current_stock: 60 },
-  { name: 'Stage Setup', type: 'Event Setup', category: 'furniture', current_stock: 2 },
-];
-
-// Group items by category
-const groupByCategory = (category) => storeItems.filter((item) => item.category === category);
 
 const AssignCutleryAndGoods = ({ onSelect }) => {
+  const { storeItems, fetchStoreItems } = useStoreItemsStore();
   const [selected, setSelected] = useState({
     equipment: [],
     supplies: [],
@@ -30,6 +12,10 @@ const AssignCutleryAndGoods = ({ onSelect }) => {
   });
 
   const [quantities, setQuantities] = useState({});
+
+  useEffect(() => {
+    fetchStoreItems(); // Fetch items from backend when component mounts
+  }, []);
 
   const handleSelection = (category, values) => {
     const updated = { ...selected, [category]: values };
@@ -43,19 +29,20 @@ const AssignCutleryAndGoods = ({ onSelect }) => {
     onSelect({ ...selected, quantities: updated });
   };
 
-  // Render list of selected items with quantity inputs
+  const groupByCategory = (category) => storeItems[category] || [];
+
   const renderQuantityInputs = (category) => {
     return selected[category]?.map((itemName) => {
-      const item = storeItems.find((i) => i.name === itemName);
+      const item = groupByCategory(category).find((i) => i.name === itemName);
       return (
         <Group key={itemName} justify="space-between" mt="xs" align="center">
           <Text size="sm" fw={500}>
-            {itemName} ({item.current_stock} available)
+            {itemName} ({item?.current_stock || 0} available)
           </Text>
           <NumberInput
             placeholder="Qty"
             min={1}
-            max={item.current_stock}
+            max={item?.current_stock || 1}
             value={quantities[itemName] || ''}
             onChange={(val) => handleQuantityChange(itemName, val)}
             w={100}
@@ -115,5 +102,3 @@ const AssignCutleryAndGoods = ({ onSelect }) => {
 };
 
 export default AssignCutleryAndGoods;
-
-

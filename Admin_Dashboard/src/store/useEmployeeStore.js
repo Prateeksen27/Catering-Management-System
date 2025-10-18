@@ -1,9 +1,11 @@
 import toast from "react-hot-toast";
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
+import { assignRef } from "@mantine/hooks";
 
 export const useEmployeeStore = create((set) => ({
     employees: [],
+    employeesGrouped: {},
     isLoading: false,
     createNewEmployee: async (data) => {
         try {
@@ -46,5 +48,35 @@ export const useEmployeeStore = create((set) => ({
             console.log("Employee Deletion Error", error);
             toast.error(error.response?.data?.message || "Error Deleting Employee", { id: loadingToastId });
         }
-    }
-}))
+    },
+
+    fetchEmployeesGrouped:async()=>{
+        try {
+            const loadingToast = toast.loading("Fetching Staff...")
+            const res = await axiosInstance.get('/employees/grouped');
+            set({employeesGrouped:res.data.data});
+            toast.success("Staff Members loaded", { id: loadingToast })
+        } catch (error) {
+            toast.error("Failed to fetch Staff ❌", { id: loadingToast });
+        }
+    },
+
+    assignStaff: async(data)=>{
+        set({isLoading:true});
+        const toastId = toast.loading("Assigning staff...");
+        try {
+        const res = await axiosInstance.post(`/employees/assign`, data);
+        toast.success("Staff assigned successfully ✅", { id: toastId });
+        set({ isLoading: false });
+        return res.data;
+        } catch (err) {
+            console.error("Error assigning staff:", err);
+            toast.error(
+            err.response?.data?.message || "Error assigning staff",
+            { id: toastId }
+        );
+        set({ isLoading: false });
+        throw err;
+        }
+    },
+}));

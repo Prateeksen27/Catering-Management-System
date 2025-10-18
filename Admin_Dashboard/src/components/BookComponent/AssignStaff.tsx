@@ -1,49 +1,11 @@
 // src/components/AssignStaff.jsx
-import { MultiSelect, Avatar, Group, Text, Box, Title, Divider, Stack } from '@mantine/core';
-import { useState } from 'react';
-
-// Dummy data for all roles
-const staffData = {
-  manager: [
-    { name: 'Rohit Sharma', email: 'rohit.manager@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-1.png' },
-    { name: 'Sneha Kapoor', email: 'sneha.manager@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-4.png' },
-  ],
-  employee: [
-    { name: 'Vikram Das', email: 'vikram.employee@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png' },
-    { name: 'Riya Patel', email: 'riya.employee@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-7.png' },
-    { name: 'Arjun Singh', email: 'arjun.employee@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-3.png' },
-  ],
-  worker: [
-    { name: 'Karan Mehta', email: 'karan.worker@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png' },
-    { name: 'Priya Reddy', email: 'priya.worker@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-6.png' },
-  ],
-  driver: [
-    { name: 'Deepak Yadav', email: 'deepak.driver@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png' },
-    { name: 'Rahul Kumar', email: 'rahul.driver@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png' },
-  ],
-  chef: [
-    { name: 'Chef Ananya', email: 'ananya.chef@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-9.png' },
-    { name: 'Chef Kabir', email: 'kabir.chef@gmail.com', img: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-1.png' },
-  ],
-};
-
-// Common renderer for dropdown options
-const renderOption = ({ option }) => {
-  const [role, name] = option.value.split(':');
-  const person = staffData[role].find((p) => p.name === name);
-
-  return (
-    <Group gap="sm">
-      <Avatar src={person?.img} size={36} radius="xl" />
-      <Box>
-        <Text size="sm" fw={500}>{person?.name}</Text>
-        <Text size="xs" c="dimmed">{person?.email}</Text>
-      </Box>
-    </Group>
-  );
-};
+import { MultiSelect, Avatar, Group, Text, Box, Title, Stack } from "@mantine/core";
+import { useState, useEffect } from "react";
+import { useEmployeeStore } from "../../store/useEmployeeStore";
 
 const AssignStaff = ({ onSelect }) => {
+  const { employeesGrouped, allEmployees, fetchEmployeesGrouped, fetchAllEmployees } = useEmployeeStore();
+
   const [selected, setSelected] = useState({
     manager: [],
     employee: [],
@@ -52,17 +14,53 @@ const AssignStaff = ({ onSelect }) => {
     chef: [],
   });
 
+  useEffect(() => {
+    fetchEmployeesGrouped();
+    fetchAllEmployees(); // fetch all employees
+  }, []);
+
   const handleChange = (role, value) => {
     const updated = { ...selected, [role]: value };
     setSelected(updated);
     onSelect(updated);
   };
 
-  const getDataForRole = (role) =>
-    staffData[role].map((p) => ({
-      value: `${role}:${p.name}`,
+  // Function to get dropdown data for a role
+  const getDataForRole = (role) => {
+    let list = [];
+    if (role === "employee") {
+      list = allEmployees || [];
+    } else {
+      list = employeesGrouped[role + "s"] || [];
+    }
+
+    return list.map((p) => ({
+      value: `${role}:${p._id}`,
       label: p.name,
+      img: p.img || "",
+      email: p.email,
     }));
+  };
+
+  // Custom option renderer
+  const renderOption = ({ option }) => {
+    const [role, id] = option.value.split(":");
+
+    let list = role === "employee" ? allEmployees || [] : employeesGrouped[role + "s"] || [];
+    const person = list.find((p) => p._id === id);
+
+    if (!person) return null;
+
+    return (
+      <Group gap="sm">
+        <Avatar src={person.img || ""} size={36} radius="xl" />
+        <Box>
+          <Text size="sm" fw={500}>{person.name}</Text>
+          <Text size="xs" c="dimmed">{person.email}</Text>
+        </Box>
+      </Group>
+    );
+  };
 
   return (
     <Stack gap="md" p="md">
@@ -71,9 +69,9 @@ const AssignStaff = ({ onSelect }) => {
       <MultiSelect
         label="Assign Manager"
         placeholder="Select manager"
-        data={getDataForRole('manager')}
+        data={getDataForRole("manager")}
         value={selected.manager}
-        onChange={(v) => handleChange('manager', v)}
+        onChange={(v) => handleChange("manager", v)}
         renderOption={renderOption}
         searchable
         hidePickedOptions
@@ -82,9 +80,9 @@ const AssignStaff = ({ onSelect }) => {
       <MultiSelect
         label="Assign Employees"
         placeholder="Select employees"
-        data={getDataForRole('employee')}
+        data={getDataForRole("employee")}  // now uses allEmployees
         value={selected.employee}
-        onChange={(v) => handleChange('employee', v)}
+        onChange={(v) => handleChange("employee", v)}
         renderOption={renderOption}
         searchable
         hidePickedOptions
@@ -93,9 +91,9 @@ const AssignStaff = ({ onSelect }) => {
       <MultiSelect
         label="Assign Workers"
         placeholder="Select workers"
-        data={getDataForRole('worker')}
+        data={getDataForRole("worker")}
         value={selected.worker}
-        onChange={(v) => handleChange('worker', v)}
+        onChange={(v) => handleChange("worker", v)}
         renderOption={renderOption}
         searchable
         hidePickedOptions
@@ -104,9 +102,9 @@ const AssignStaff = ({ onSelect }) => {
       <MultiSelect
         label="Assign Drivers"
         placeholder="Select drivers"
-        data={getDataForRole('driver')}
+        data={getDataForRole("driver")}
         value={selected.driver}
-        onChange={(v) => handleChange('driver', v)}
+        onChange={(v) => handleChange("driver", v)}
         renderOption={renderOption}
         searchable
         hidePickedOptions
@@ -115,9 +113,9 @@ const AssignStaff = ({ onSelect }) => {
       <MultiSelect
         label="Assign Chefs"
         placeholder="Select chefs"
-        data={getDataForRole('chef')}
+        data={getDataForRole("chef")}
         value={selected.chef}
-        onChange={(v) => handleChange('chef', v)}
+        onChange={(v) => handleChange("chef", v)}
         renderOption={renderOption}
         searchable
         hidePickedOptions
