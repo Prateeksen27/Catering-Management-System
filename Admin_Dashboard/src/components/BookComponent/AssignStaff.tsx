@@ -1,10 +1,13 @@
 // src/components/AssignStaff.jsx
-import { MultiSelect, Avatar, Group, Text, Box, Title, Stack } from "@mantine/core";
+import { MultiSelect, Avatar, Group, Text, Box, Title, Stack, Badge } from "@mantine/core";
 import { useState, useEffect } from "react";
 import { useEmployeeStore } from "../../store/useEmployeeStore";
+import { useBookingStore } from "../../store/useBookingStore";
+import { IconUsers } from "@tabler/icons-react";
 
 const AssignStaff = ({ onSelect }) => {
   const { employeesGrouped, allEmployees, fetchEmployeesGrouped, fetchAllEmployees } = useEmployeeStore();
+  const { staff, setStaff, getSelectedStaffCount } = useBookingStore();
 
   const [selected, setSelected] = useState({
     manager: [],
@@ -16,13 +19,27 @@ const AssignStaff = ({ onSelect }) => {
 
   useEffect(() => {
     fetchEmployeesGrouped();
-    fetchAllEmployees(); // fetch all employees
+    fetchAllEmployees();
+  }, []);
+
+  // Initialize with store data
+  useEffect(() => {
+    setSelected(staff);
   }, []);
 
   const handleChange = (role, value) => {
     const updated = { ...selected, [role]: value };
+    
+    // Update local state
     setSelected(updated);
-    onSelect(updated);
+    
+    // Update Zustand store
+    setStaff(role, value);
+    
+    // Call parent callback (if needed for validation)
+    if (onSelect) {
+      onSelect(updated);
+    }
   };
 
   // Function to get dropdown data for a role
@@ -62,9 +79,21 @@ const AssignStaff = ({ onSelect }) => {
     );
   };
 
+  const selectedCount = getSelectedStaffCount();
+
   return (
     <Stack gap="md" p="md">
-      <Title order={4}>Assign Staff Members</Title>
+      <Group justify="space-between">
+        <Title order={4}>Assign Staff Members</Title>
+        <Badge 
+          size="lg" 
+          variant="light" 
+          color="blue"
+          leftSection={<IconUsers size={14} />}
+        >
+          {selectedCount} Selected
+        </Badge>
+      </Group>
 
       <MultiSelect
         label="Assign Manager"
@@ -77,7 +106,6 @@ const AssignStaff = ({ onSelect }) => {
         hidePickedOptions
         styles={{ dropdown: { maxHeight: 200, overflowY: 'auto' } }}
       />
-
 
       <MultiSelect
         label="Assign Workers"
