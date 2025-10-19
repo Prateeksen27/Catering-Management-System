@@ -12,7 +12,7 @@ const AssignStaff = ({ onSelect }) => {
 
   useEffect(() => {
     fetchEmployeesGrouped();
-    fetchAllEmployees(); // fetch all employees
+    fetchAllEmployees(); 
   }, []);
 
   const handleChange = (role, value) => {
