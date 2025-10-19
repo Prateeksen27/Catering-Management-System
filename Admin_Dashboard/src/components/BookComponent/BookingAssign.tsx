@@ -1,21 +1,29 @@
 // src/components/BookingAssign.jsx
-import { Button, Group, Stepper } from '@mantine/core';
-import { IconCircleCheck, IconUserCheck, IconTruck, IconToolsKitchen2 } from '@tabler/icons-react';
+import { Button, Group, Stepper, Modal, Text } from '@mantine/core';
+import { 
+  IconCircleCheck, 
+  IconUserCheck, 
+  IconTruck, 
+  IconToolsKitchen2,
+  IconClipboardList,
+  IconEdit
+} from '@tabler/icons-react';
 import React, { useState } from 'react';
 import AssignStaff from './AssignStaff';
 import AssignCutleryAndGoods from './AssignCutleryAndGoods';
 import AssignVehicle from './AssignVehicle';
+import ReviewAllSelections from './ReviewAllSelections '
 import toast from 'react-hot-toast';
+import { useDataStore } from '../../store/useDataStore';
 
-const BookingAssign = () => {
+const BookingAssign = ({ onCloseDrawer }) => {
   const [active, setActive] = useState(0);
+  const [editModalOpened, setEditModalOpened] = useState(false);
+  const [stepToEdit, setStepToEdit] = useState(0);
 
   // ✅ Step data states
-  type StaffSelection = Record<string, any[]>;
-  type GoodsSelection = Record<string, any> & { quantities?: Record<string, number> };
-
-  const [staffSelection, setStaffSelection] = useState<StaffSelection>({});
-  const [goodsSelection, setGoodsSelection] = useState<GoodsSelection>({});
+  const [staffSelection, setStaffSelection] = useState({});
+  const [goodsSelection, setGoodsSelection] = useState({});
 
   // ✅ Handle next step with validation
   const nextStep = () => {
@@ -32,15 +40,27 @@ const BookingAssign = () => {
 
     // Step 2 validation: Goods and Cutlery
     if (active === 1) {
-      const allCategoriesEmpty = Object.values(goodsSelection).every(
-        (arr) => !arr || arr.length === 0
+      const { selectedGoods } = useDataStore.getState();
+      
+      const hasItems = Object.values(selectedGoods).some(
+        (categoryItems) => categoryItems && categoryItems.length > 0
       );
-      const hasQuantities =
-        goodsSelection.quantities &&
-        Object.keys(goodsSelection.quantities).length > 0;
+      
+      const hasValidQuantities = Object.values(selectedGoods).every((categoryItems) => 
+        categoryItems.every(item => item.quantity > 0)
+      );
 
-      if (allCategoriesEmpty || !hasQuantities) {
-        toast.error('Please assign at least one item and quantity before proceeding!');
+      if (!hasItems || !hasValidQuantities) {
+        toast.error('Please assign at least one item with valid quantity before proceeding!');
+        return;
+      }
+    }
+
+    // Step 3 validation: Vehicles
+    if (active === 2) {
+      const { selectedVehicles } = useDataStore.getState();
+      if (selectedVehicles.length === 0) {
+        toast.error('Please assign at least one vehicle before proceeding!');
         return;
       }
     }
@@ -50,6 +70,63 @@ const BookingAssign = () => {
   };
 
   const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
+
+  // Handle edit action from review step
+  const handleEditStep = (stepIndex) => {
+    setStepToEdit(stepIndex);
+    setEditModalOpened(true);
+  };
+
+  const handleConfirmEdit = () => {
+    setActive(stepToEdit);
+    setEditModalOpened(false);
+  };
+
+  // Get step titles for the modal
+  const getStepTitle = (stepIndex) => {
+    const titles = {
+      0: "Staff Assignment",
+      1: "Goods & Cutlery",
+      2: "Vehicle Assignment"
+    };
+    return titles[stepIndex] || "Step";
+  };
+
+  // Handle finish button click
+  const handleFinish = () => {
+    // Get current state from store
+    const currentState = useDataStore.getState();
+    
+    // Prepare the data to log
+    const bookingData = {
+      staff: currentState.selectedStaff,
+      goods: currentState.selectedGoods,
+      vehicles: currentState.selectedVehicles,
+      summary: {
+        totalStaff: currentState.getSelectedStaffCount(),
+        totalGoods: currentState.getSelectedGoodsCount(),
+        totalVehicles: currentState.getSelectedVehiclesCount(),
+        totalQuantity: currentState.getTotalGoodsQuantity()
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    // Log to console
+    console.log('🎯 FINAL BOOKING DATA:', bookingData);
+    
+    // Show success message
+    toast.success('Booking confirmed successfully!');
+    
+    // Reset the store state
+    currentState.clearAllSelections();
+    
+    // Close the drawer after a short delay
+    setTimeout(() => {
+      if (onCloseDrawer) {
+        onCloseDrawer();
+      }
+    }, 1000);
+  };
 
   return (
     <div>
@@ -86,10 +163,14 @@ const BookingAssign = () => {
           <AssignVehicle />
         </Stepper.Step>
 
-        {/* COMPLETED */}
-        <Stepper.Completed>
-          ✅ Completed! Click "Back" to revisit steps.
-        </Stepper.Completed>
+        {/* STEP 4: REVIEW - Only show review once */}
+        <Stepper.Step
+          label="Review All"
+          description="📋"
+          icon={<IconClipboardList size={18} />}
+        >
+          <ReviewAllSelections onEdit={handleEditStep} />
+        </Stepper.Step>
       </Stepper>
 
       {/* FOOTER BUTTONS */}
@@ -97,10 +178,55 @@ const BookingAssign = () => {
         <Button variant="default" onClick={prevStep} disabled={active === 0}>
           Back
         </Button>
-        <Button onClick={nextStep}>
-          {active === 2 ? 'Finish' : 'Next step'}
-        </Button>
+        
+        {active < 3 ? (
+          <Button onClick={nextStep}>
+            Next step
+          </Button>
+        ) : (
+          <Button 
+            color="green" 
+            onClick={handleFinish}
+          >
+            Confirm Booking
+          </Button>
+        )}
       </Group>
+
+      {/* Edit Step Modal */}
+      <Modal
+        opened={editModalOpened}
+        onClose={() => setEditModalOpened(false)}
+        title="Edit Selection"
+        centered
+        size="md"
+      >
+        <div style={{ textAlign: 'center' }}>
+          <IconEdit size={48} color="#228be6" style={{ marginBottom: 16 }} />
+          <Text size="lg" fw={500} mb="md">
+            Edit {getStepTitle(stepToEdit)}
+          </Text>
+          <Text size="sm" c="dimmed" mb="xl">
+            You will be taken back to the {getStepTitle(stepToEdit).toLowerCase()} step to make changes. 
+            Your current selections will be preserved.
+          </Text>
+          
+          <Group justify="center">
+            <Button 
+              variant="light" 
+              onClick={() => setEditModalOpened(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              color="blue"
+              onClick={handleConfirmEdit}
+            >
+              Continue Editing
+            </Button>
+          </Group>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -18,11 +18,12 @@ const BookingPending: React.FC = () => {
     eventName:"",
     phone:0
   })
-  const handleBookingAssign = (booking)=>{
+  
+  const handleBookingAssign = (booking) => {
     setDetails({
-      name:booking.clientDetails.fullName,
-      eventName:booking.eventDetails.eventName,
-      phone:booking.clientDetails.phone
+      name: booking.clientDetails.fullName,
+      eventName: booking.eventDetails.eventName,
+      phone: booking.clientDetails.phone
     })
     open()
   }
@@ -52,6 +53,7 @@ const BookingPending: React.FC = () => {
         return <Clock className="h-5 w-5 text-warning" />;
     }
   };
+
   return (
     <div className="space-y-6">
       <Modal
@@ -62,8 +64,10 @@ const BookingPending: React.FC = () => {
         radius={0}
         transitionProps={{ transition: 'fade', duration: 200 }}
       >
-        <BookingAssign />
+        {/* Pass the close function as onCloseDrawer */}
+        <BookingAssign onCloseDrawer={close} />
       </Modal>
+      
       <div>
         <h1 className="text-3xl font-bold text-foreground">Pending Bookings</h1>
         <p className="text-muted-foreground">Bookings awaiting confirmation or action</p>
@@ -119,7 +123,6 @@ const BookingPending: React.FC = () => {
                       {item}
                     </Badge>
                   ))}
-
                 </div>
               </div>
 
@@ -132,7 +135,7 @@ const BookingPending: React.FC = () => {
                     <X className="h-4 w-4 mr-2" />
                     Decline
                   </Button>
-                  <Button size="sm" onClick={()=>handleBookingAssign(booking)} >
+                  <Button size="sm" onClick={() => handleBookingAssign(booking)}>
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Approve
                   </Button>
