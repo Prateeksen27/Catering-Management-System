@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 export const useBookingStore = create((set,get) => ({
     queries: [],
     pendingBookings: [],
+    completedBookings:[],
     booked: [],
     isLoading: false,
     fetchAllQueries: async () => {
@@ -70,5 +71,18 @@ export const useBookingStore = create((set,get) => ({
             
             
         }
+    },
+    fetchAllCompletedBookings:async ()=>{
+         const loadingToast = toast.loading("Fetching Data...")
+         try {
+            const res = await axiosInstance.get('/booking/getCompletedBookings')
+            set({completedBookings:res.data.data})
+            toast.success("Fetched Successfully!",{id:loadingToast})
+         } catch (error) {
+            console.log(error);
+            toast.error("Error Fetching Data!",{id:loadingToast})
+            
+            
+         }
     }
 }))
