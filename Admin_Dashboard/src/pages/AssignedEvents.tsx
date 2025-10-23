@@ -7,6 +7,7 @@ import {
   AlertCircle,
   User,
   Calendar,
+  Edit,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +20,18 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const AssignedEvents: React.FC = () => {
   const { assignedEvents = [], fetchAllAssignedEvents } = useEmployeeStore();
@@ -28,6 +39,12 @@ const AssignedEvents: React.FC = () => {
 
   const [selectedStaff, setSelectedStaff] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    bookingStatus: "",
+    deposited: "",
+  });
 
   useEffect(() => {
     if (user?._id) {
@@ -87,6 +104,51 @@ const AssignedEvents: React.FC = () => {
   const handleShowStaff = (staffList: any[]) => {
     setSelectedStaff(staffList || []);
     setIsDialogOpen(true);
+  };
+
+  // 🔹 Handle Update Status Click
+  const handleUpdateStatus = (event: any) => {
+    setSelectedEvent(event);
+    setFormData({
+      bookingStatus: event.bookingStatus || "",
+      deposited: event.deposited?.toString() || "",
+    });
+    setIsStatusDialogOpen(true);
+  };
+
+  // 🔹 Handle Form Input Change
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // 🔹 Handle Status Update Submission
+  const handleStatusUpdate = async () => {
+    if (!selectedEvent || !formData.bookingStatus) return;
+
+    // Add your update logic here
+    console.log("Updating event:", selectedEvent._id, "with data:", {
+      bookingStatus: formData.bookingStatus,
+      deposited: parseFloat(formData.deposited) || 0,
+    });
+    
+    // Close dialog after update
+    setIsStatusDialogOpen(false);
+    setSelectedEvent(null);
+    setFormData({
+      bookingStatus: "",
+      deposited: "",
+    });
+  };
+
+  // Calculate due amount
+  const calculateDueAmount = () => {
+    if (!selectedEvent) return 0;
+    const totalAmount = selectedEvent.totalAmount || 0;
+    const deposited = parseFloat(formData.deposited) || 0;
+    return Math.max(totalAmount - deposited, 0);
   };
 
   return (
@@ -220,7 +282,12 @@ const AssignedEvents: React.FC = () => {
                       View Assigned Staffs
                     </Button>
                     {task.status !== "completed" && (
-                      <Button size="sm">Update Status</Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleUpdateStatus(task)}
+                      >
+                        Update Status
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -261,6 +328,85 @@ const AssignedEvents: React.FC = () => {
                 </div>
               ))
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 🔹 Status Update Dialog */}
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Event Status</DialogTitle>
+            <DialogDescription>
+              Update booking status and payment details for {selectedEvent?.eventName}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Booking Status */}
+            <div className="space-y-2">
+              <Label htmlFor="bookingStatus">Booking Status</Label>
+              <Select
+                value={formData.bookingStatus}
+                onValueChange={(value) => handleInputChange("bookingStatus", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Confirmed">Confirmed</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Deposited Amount */}
+            <div className="space-y-2">
+              <Label htmlFor="deposited">Deposited Amount (₹)</Label>
+              <Input
+                id="deposited"
+                type="number"
+                placeholder="Enter deposited amount"
+                value={formData.deposited}
+                onChange={(e) => handleInputChange("deposited", e.target.value)}
+              />
+              {selectedEvent && (
+                <p className="text-xs text-muted-foreground">
+                  Total Amount: ₹{selectedEvent.totalAmount || 0} | 
+                  Due: ₹{calculateDueAmount()}
+                </p>
+              )}
+            </div>
+
+            {/* Current Status Display */}
+            {selectedEvent && (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm font-medium">Current Status</p>
+                <div className="flex items-center gap-2 mt-1">
+                  {getStatusIcon(selectedEvent.bookingStatus)}
+                  {getStatusBadge(selectedEvent.bookingStatus)}
+                  <span className="text-sm">
+                    Deposited: ₹{selectedEvent.deposited || 0}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setIsStatusDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleStatusUpdate}
+              disabled={!formData.bookingStatus}
+            >
+              Update Status
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
