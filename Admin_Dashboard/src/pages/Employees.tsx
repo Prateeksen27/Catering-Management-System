@@ -177,7 +177,7 @@ const Employees: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-foreground">{employee.currentProjects || "N/A"}</p>
+                  <p className="text-2xl font-bold text-foreground">{employee.assignedProject || "N/A"}</p>
                   <p className="text-sm text-muted-foreground">Active Projects</p>
                 </div>
               </div>

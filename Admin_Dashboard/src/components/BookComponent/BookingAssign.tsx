@@ -15,8 +15,10 @@ import AssignVehicle from './AssignVehicle';
 import ReviewAllSelections from './ReviewAllSelections '
 import toast from 'react-hot-toast';
 import { useDataStore } from '../../store/useDataStore';
+import { useBookingStore } from '../../store/useBookingStore';
 
-const BookingAssign = ({ onCloseDrawer }) => {
+const BookingAssign = ({ onCloseDrawer,eventData }) => {
+  const {confirmBooking} = useBookingStore()
   const [active, setActive] = useState(0);
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [stepToEdit, setStepToEdit] = useState(0);
@@ -29,8 +31,8 @@ const BookingAssign = ({ onCloseDrawer }) => {
   const nextStep = () => {
     // Step 1 validation: Staff
     if (active === 0) {
-      const allRolesEmpty = Object.values(staffSelection).every(
-        (arr) => !arr || arr.length === 0
+      const allRolesEmpty = Object.values(staffSelection).every((arr) =>
+        !arr || (Array.isArray(arr) && arr.length === 0)
       );
       if (allRolesEmpty) {
         toast.error('Please assign at least one staff member before proceeding!');
@@ -40,14 +42,14 @@ const BookingAssign = ({ onCloseDrawer }) => {
 
     // Step 2 validation: Goods and Cutlery
     if (active === 1) {
-      const { selectedGoods } = useDataStore.getState();
+      const selectedGoods = (useDataStore.getState().selectedGoods || {}) as Record<string, Array<{ quantity: number }>>;
       
       const hasItems = Object.values(selectedGoods).some(
-        (categoryItems) => categoryItems && categoryItems.length > 0
+        (categoryItems) => Array.isArray(categoryItems) && categoryItems.length > 0
       );
       
       const hasValidQuantities = Object.values(selectedGoods).every((categoryItems) => 
-        categoryItems.every(item => item.quantity > 0)
+        Array.isArray(categoryItems) && categoryItems.every(item => typeof item.quantity === 'number' && item.quantity > 0)
       );
 
       if (!hasItems || !hasValidQuantities) {
@@ -93,7 +95,7 @@ const BookingAssign = ({ onCloseDrawer }) => {
   };
 
   // Handle finish button click
-  const handleFinish = () => {
+  const handleFinish = async () => {
     // Get current state from store
     const currentState = useDataStore.getState();
     
@@ -109,13 +111,17 @@ const BookingAssign = ({ onCloseDrawer }) => {
         totalQuantity: currentState.getTotalGoodsQuantity()
       },
       timestamp: new Date().toISOString()
-    };
+    };  
+    const newBooking = {
+      ...bookingData,
+      eventData: eventData
+    }
 
     // Log to console
-    console.log('🎯 FINAL BOOKING DATA:', bookingData);
+    console.log('🎯 FINAL BOOKING DATA:', newBooking);
     
     // Show success message
-    toast.success('Booking confirmed successfully!');
+   await confirmBooking(newBooking);
     
     // Reset the store state
     currentState.clearAllSelections();

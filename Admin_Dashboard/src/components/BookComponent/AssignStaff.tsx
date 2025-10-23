@@ -1,78 +1,103 @@
-import { MultiSelect, Avatar, Group, Text, Box, Title, Stack ,Badge } from "@mantine/core";
+import {
+  MultiSelect,
+  Avatar,
+  Group,
+  Text,
+  Box,
+  Title,
+  Stack,
+  Badge,
+} from "@mantine/core";
 import { useState, useEffect } from "react";
 import { useEmployeeStore } from "../../store/useEmployeeStore";
 import { useDataStore } from "../../store/useDataStore";
-import { log } from "node:console";
 import { IconUsers } from "@tabler/icons-react";
+import { AvatarFallback } from "@radix-ui/react-avatar";
 
 const AssignStaff = ({ onSelect }) => {
-  const { employeesGrouped, allEmployees, fetchEmployeesGrouped, fetchAllEmployees } = useEmployeeStore();
+  const {
+    employeesGrouped,
+    allEmployees,
+    fetchEmployeesGrouped,
+    fetchAllEmployees,
+  } = useEmployeeStore();
   const { selectedStaff, setSelectedStaff, getSelectedCount } = useDataStore();
-
 
   useEffect(() => {
     fetchEmployeesGrouped();
-    fetchAllEmployees(); 
+    fetchAllEmployees();
   }, []);
 
   const handleChange = (role, value) => {
     setSelectedStaff(role, value);
-   const updatedState = {
+    const updatedState = {
       ...selectedStaff,
-      [role]: value
+      [role]: value,
     };
-    console.log(updatedState);
     onSelect(updatedState);
   };
 
-  // Function to get dropdown data for a role
   const getDataForRole = (role) => {
-    let list = [];
-    if (role === "employee") {
-      list = allEmployees || [];
-    } else {
-      list = employeesGrouped[role + "s"] || [];
-    }
+  
 
+    const list = employeesGrouped[role] || [];
     return list.map((p) => ({
       value: `${p._id}`,
       label: p.name,
-      img: p.img || "",
+      img: p.profilePic || "",
       email: p.email,
     }));
   };
 
-  // Custom option renderer
+  // ✅ Clean Mantine-based option renderer
   const renderOption = ({ option }) => {
-     const person = allEmployees?.find(p => p._id === option.value) || 
-                Object.values(employeesGrouped).flat().find(p => p._id === option.value);
+    const person =
+      allEmployees?.find((p) => p._id === option.value) ||
+      (Object.values(employeesGrouped || {}).flat() as any[]).find(
+        (p: any) => p._id === option.value
+      );
 
-  if (!person) return null;
+    if (!person) return null;
 
-  return (
-    <Group gap="sm">
-      <Avatar src={person.img || ""} size={36} radius="xl" />
-      <Box>
-        <Text size="sm" fw={500}>{person.name}</Text>
-        <Text size="xs" c="dimmed">{person.email}</Text>
-      </Box>
-    </Group>
-  )
+    const initials =
+      person.name
+        ?.split(" ")
+        .map((n, i, arr) => (i === 0 || i === arr.length - 1 ? n[0] : ""))
+        .join("")
+        .toUpperCase() || "U";
+
+    return (
+      <Group gap="sm">
+        <Avatar src={person.img} radius="xl" size={40}>
+          {initials}
+        </Avatar>
+
+        <Box>
+          <Text size="sm" fw={500}>
+            {person.name}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {person.email}
+          </Text>
+        </Box>
+      </Group>
+    );
   };
 
   return (
     <Stack gap="md" p="md">
-       <Group justify="space-between">
+      <Group justify="space-between">
         <Title order={4}>Assign Staff Members</Title>
-        <Badge 
-          size="lg" 
-          variant="light" 
+        <Badge
+          size="lg"
+          variant="light"
           color="blue"
           leftSection={<IconUsers size={14} />}
         >
           {getSelectedCount()} Selected
         </Badge>
       </Group>
+
       <MultiSelect
         label="Assign Manager"
         placeholder="Select manager"
@@ -82,9 +107,8 @@ const AssignStaff = ({ onSelect }) => {
         renderOption={renderOption}
         searchable
         hidePickedOptions
-        styles={{ dropdown: { maxHeight: 200, overflowY: 'auto' } }}
+        styles={{ dropdown: { maxHeight: 200, overflowY: "auto" } }}
       />
-
 
       <MultiSelect
         label="Assign Workers"
@@ -95,7 +119,7 @@ const AssignStaff = ({ onSelect }) => {
         renderOption={renderOption}
         searchable
         hidePickedOptions
-        styles={{ dropdown: { maxHeight: 200, overflowY: 'auto' } }}
+        styles={{ dropdown: { maxHeight: 200, overflowY: "auto" } }}
       />
 
       <MultiSelect
@@ -107,7 +131,7 @@ const AssignStaff = ({ onSelect }) => {
         renderOption={renderOption}
         searchable
         hidePickedOptions
-        styles={{ dropdown: { maxHeight: 200, overflowY: 'auto' } }}
+        styles={{ dropdown: { maxHeight: 200, overflowY: "auto" } }}
       />
 
       <MultiSelect
@@ -119,7 +143,7 @@ const AssignStaff = ({ onSelect }) => {
         renderOption={renderOption}
         searchable
         hidePickedOptions
-        styles={{ dropdown: { maxHeight: 200, overflowY: 'auto' } }}
+        styles={{ dropdown: { maxHeight: 200, overflowY: "auto" } }}
       />
     </Stack>
   );

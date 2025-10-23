@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '../../store/useAuthStore';
+import { IconClipboardCopy } from '@tabler/icons-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -66,9 +67,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       path: '/menu'
     },
     {
-      title: 'Assigned Word',
+      title: 'Assigned Work',
       icon: FileText,
       path: '/assigned-word'
+    },
+    {
+      title:"Assigned Events",
+      icon:IconClipboardCopy,
+      path:'/assigned-events'
     },
     {
       title: 'Store',

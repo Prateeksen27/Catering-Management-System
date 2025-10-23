@@ -1,6 +1,3 @@
-// import { Toaster } from "@/components/ui/toaster";
-// import { Toaster as Sonner } from "@/components/ui/sonner";
-// import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -24,7 +21,8 @@ import { useAuthStore } from "./store/useAuthStore";
 import ProtectedRoute from "./components/ProtectedRoutes/ProtectedRoutes";
 import EmployeeProfile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
-import Vehicle from "./pages/vehicle";
+import Vehicle from "./pages/Vehicle";
+import AssignedEvents from "./pages/AssignedEvents";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -109,6 +107,13 @@ const App = () => {
               </DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path='/assigned-events' element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <AssignedEvents />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />y
             <Route path="/store" element={
               <ProtectedRoute>
               <DashboardLayout>

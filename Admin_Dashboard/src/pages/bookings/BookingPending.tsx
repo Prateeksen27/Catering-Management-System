@@ -14,16 +14,30 @@ const BookingPending: React.FC = () => {
   const [opened, { open, close }] = useDisclosure(false); 
   const [isCancelled, setIsCancelled] = useState(false);
   const [details,setDetails] = useState({
+    _id:"",
     name:"",
     eventName:"",
-    phone:0
+    phone:0,
+    eventDate:"",
+    eventTime:"",
+    venue:"",
+    pax:0,
+    totalAmount:0,
+    menu:[]
   })
   
   const handleBookingAssign = (booking) => {
     setDetails({
+      _id:booking._id,
       name: booking.clientDetails.fullName,
       eventName: booking.eventDetails.eventName,
-      phone: booking.clientDetails.phone
+      phone: booking.clientDetails.phone,
+      eventDate: booking.eventDetails.eventDate,
+      eventTime: booking.eventDetails.eventTime,
+      venue: booking.eventDetails.venue,
+      pax: booking.eventDetails.pax,
+      totalAmount: booking.estimatedAmount * (booking.eventDetails.pax + 10),
+      menu: booking.menu
     })
     open()
   }
@@ -65,7 +79,7 @@ const BookingPending: React.FC = () => {
         transitionProps={{ transition: 'fade', duration: 200 }}
       >
         {/* Pass the close function as onCloseDrawer */}
-        <BookingAssign onCloseDrawer={close} />
+        <BookingAssign onCloseDrawer={close} eventData={details} />
       </Modal>
       
       <div>

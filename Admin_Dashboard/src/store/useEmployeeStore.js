@@ -7,6 +7,7 @@ export const useEmployeeStore = create((set) => ({
     employees: [],
     employeesGrouped: {},
     isLoading: false,
+    assignedEvents:[],
     createNewEmployee: async (data) => {
         try {
             const responce = axiosInstance.post('/auth/register', data)
@@ -77,4 +78,16 @@ export const useEmployeeStore = create((set) => ({
         throw err;
         }
     },
+    fetchAllAssignedEvents:async (id)=>{
+        const loadingToast = toast.loading("Events Loading please wait...")
+        try {
+            const res = await axiosInstance.get(`/employees/${id}/events`);
+            set({assignedEvents:res.data.events})
+            toast.success("Events Fetched Successfully!",{id:loadingToast})
+
+        } catch (error) {
+            console.log(error);
+            toast.error("Error fetching events!",{id:loadingToast})
+        }
+    }
 }));
