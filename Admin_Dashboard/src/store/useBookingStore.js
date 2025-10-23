@@ -48,6 +48,7 @@ export const useBookingStore = create((set,get) => ({
         try {
             const responce = await axiosInstance.get('/booking/getAllBookedEvents');
             set({ booked: responce.data.responce })
+          console.log("Booked",get().booked);
             toast.success("Fetched booked events", { id: loadingToast })
         } catch (error) {
             console.log(error);
