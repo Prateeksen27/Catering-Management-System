@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import {
   FileText,
   Clock,
@@ -12,19 +13,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconCurrencyRupee } from "@tabler/icons-react";
 import { useEmployeeStore } from "../store/useEmployeeStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { Button } from "../components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const AssignedEvents: React.FC = () => {
   const { assignedEvents = [], fetchAllAssignedEvents } = useEmployeeStore();
   const { user } = useAuthStore();
 
-  // ✅ Fetch assigned events when user is ready
+  const [selectedStaff, setSelectedStaff] = useState<any[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   useEffect(() => {
     if (user?._id) {
       fetchAllAssignedEvents(user._id);
     }
   }, [user?._id, fetchAllAssignedEvents]);
 
-  // ✅ Calculate dynamic stats
   const stats = {
     total: assignedEvents.length,
     inProgress: assignedEvents.filter(
@@ -38,7 +48,6 @@ const AssignedEvents: React.FC = () => {
     ).length,
   };
 
-  // ✅ Status badge
   const getStatusBadge = (status: string) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -52,7 +61,6 @@ const AssignedEvents: React.FC = () => {
     }
   };
 
-  // ✅ Fixed payment badge logic
   const getPaymentBadge = (amount = 0, deposited = 0) => {
     if (deposited <= 0)
       return <Badge variant="destructive">Unpaid</Badge>;
@@ -62,7 +70,6 @@ const AssignedEvents: React.FC = () => {
       return <Badge variant="secondary">Paid</Badge>;
   };
 
-  // ✅ Status icon
   const getStatusIcon = (status: string) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -76,6 +83,12 @@ const AssignedEvents: React.FC = () => {
     }
   };
 
+  // 🔹 Handle View Assigned Staff Click
+  const handleShowStaff = (staffList: any[]) => {
+    setSelectedStaff(staffList || []);
+    setIsDialogOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -86,7 +99,7 @@ const AssignedEvents: React.FC = () => {
         </p>
       </div>
 
-      {/* Stats Overview */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
           {
@@ -132,7 +145,7 @@ const AssignedEvents: React.FC = () => {
         ))}
       </div>
 
-      {/* Task List */}
+      {/* Event List */}
       <div className="grid gap-6">
         {assignedEvents.length === 0 ? (
           <p className="text-muted-foreground text-center py-6">
@@ -150,9 +163,7 @@ const AssignedEvents: React.FC = () => {
                     {getPaymentBadge(task.totalAmount, task.deposited)}
                   </CardTitle>
                   <div className="text-right">
-                    <p className="text-sm text-muted-foreground">
-                      Total Amount
-                    </p>
+                    <p className="text-sm text-muted-foreground">Total Amount</p>
                     <p className="text-2xl font-bold text-foreground flex items-center justify-end">
                       <IconCurrencyRupee size={16} />
                       {task.totalAmount ?? 0}
@@ -176,9 +187,7 @@ const AssignedEvents: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">
-                        Event Date
-                      </p>
+                      <p className="text-sm text-muted-foreground">Event Date</p>
                       <p className="font-medium">
                         {task.eventDate
                           ? new Date(task.eventDate).toLocaleDateString()
@@ -193,9 +202,7 @@ const AssignedEvents: React.FC = () => {
                   </div>
 
                   <div>
-                    <p className="text-sm text-muted-foreground">
-                      Due Payment
-                    </p>
+                    <p className="text-sm text-muted-foreground">Due Payment</p>
                     <p className="font-medium">
                       {(task.totalAmount ?? 0) - (task.deposited ?? 0)}
                     </p>
@@ -204,13 +211,59 @@ const AssignedEvents: React.FC = () => {
 
                 <div className="flex justify-between items-center text-sm text-muted-foreground flex-wrap gap-2">
                   <span>Assigned by: Admin</span>
-                  <span>Booking ID: #{task.bookingId}</span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleShowStaff(task.assignedStaff)}
+                    >
+                      View Assigned Staffs
+                    </Button>
+                    {task.status !== "completed" && (
+                      <Button size="sm">Update Status</Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))
         )}
       </div>
+
+      {/* 🔹 Staff Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assigned Staff</DialogTitle>
+          </DialogHeader>
+
+          <div className="max-h-80 overflow-y-auto space-y-3 pr-1">
+            {selectedStaff?.length === 0 ? (
+              <p className="text-sm text-center text-muted-foreground py-4">
+                No staff assigned for this event.
+              </p>
+            ) : (
+              selectedStaff.map((staff: any) => (
+                <div
+                  key={staff._id}
+                  className="flex items-center gap-3 border p-2 rounded-lg hover:bg-muted transition"
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={staff.profilePic} alt={staff.name} />
+                    <AvatarFallback>{staff.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{staff.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {staff.role || "Staff"}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

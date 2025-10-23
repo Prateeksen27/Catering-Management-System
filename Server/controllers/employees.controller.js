@@ -126,9 +126,10 @@ export const getAllAssignedEvents = async (req, res) => {
 
     }
     const events = await Booked.find(query)
-      .populate("assignedStaff", "name empType")
-      .populate("assignedChefs", "name empType")
-      .populate("assignedVehicles", "name empType")
+      .populate("assignedStaff", "name empType profilePic")
+      .populate("assignedChefs", "name empType profilePic")
+      .populate("assignedVehicles", "model plateNumber manufacturer")
+      .populate("goodsUsed","itemName quantity")
       .select("eventName eventDate eventTime venue bookingStatus clientName totalAmount");
 
     res.status(200).json({ events });
