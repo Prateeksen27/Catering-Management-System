@@ -9,13 +9,14 @@ import { useBookingStore } from '../store/useBookingStore';
 import { useEmployeeStore } from '../store/useEmployeeStore';
 
 const Dashboard: React.FC = () => {
-  const { pendingBookings, fetchAllPendingBookings, isLoading: bookingLoading } = useBookingStore();
+  const { pendingBookings, fetchAllPendingBookings, isLoading: bookingLoading ,fetchAllCompletedBookings , completedBookings } = useBookingStore();
   const { employees, fetchAllEmployees, isLoading: employeeLoading } = useEmployeeStore();
 
   useEffect(() => {
     fetchAllPendingBookings();
     fetchAllEmployees();
-  }, [fetchAllPendingBookings, fetchAllEmployees]);
+    fetchAllCompletedBookings();
+  }, [fetchAllPendingBookings, fetchAllEmployees,fetchAllCompletedBookings]);
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
@@ -27,7 +28,7 @@ const Dashboard: React.FC = () => {
         />
         <StatsCard
           title="Completed"
-          value="5,359"
+          value={employeeLoading ? 'Loading...' : completedBookings.length}
           icon={<Package className="h-6 w-6 text-primary" />}
         />
         <StatsCard

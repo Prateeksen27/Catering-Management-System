@@ -1,4 +1,5 @@
 import Booked from "../models/Booked.model.js";
+import Completed from "../models/completeBooking.model.js";
 import pendingBooking from "../models/pendingBooking.model.js";
 import query from "../models/query.model.js"
 import { StoreItem } from "../models/store.model.js";
@@ -151,4 +152,34 @@ export const getAllBookedEvents = async (req,res)=>{
         
         
     }
+};
+
+export const getAllCompleted = async(req,res) => {
+  try {
+    const completedbooking = await Completed.find().sort({createdAt: -1});
+    res.status(200).json({success:true, data:completedbooking})
+  } catch (error) {
+    res.status(500).json({success:false,message:error.message});
+  }
+};
+
+
+export const completeBooking = async (req,res)=>{
+  try {
+    const data = req.body;  
+    const newCompleted = await Completed.create(
+      data
+    )
+    res.status(200).json({
+      success:true,
+      message:"Successfully Created",
+      data:newCompleted
+    })
+
+  } catch (error) {
+    res.status(500).json({
+      success:false,
+      message:"Gandi ta mareili re sanga"
+    })
+  }
 }
