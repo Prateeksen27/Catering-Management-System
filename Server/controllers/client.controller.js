@@ -33,7 +33,7 @@ export const sendQuery = async (req, res) => {
 
 export const sendBookingRequest = async (req, res) => {
     try {
-        const data = req.body
+        const data = req.body        
         if (!data.personal || !data.event || !data.menu) {
             return res.status(400).json({
                 message: "Missing required booking sections (personal, event, or menu).",
@@ -54,8 +54,8 @@ export const sendBookingRequest = async (req, res) => {
                 notes: data.event.notes,
             },
             menu: {
-                starters: data.menu.selectedItems.starters || [],
-                maincourse: data.menu.selectedItems.maincourse || [],
+                starters: data.menu.selectedItems.appetizers || [],
+                maincourse: data.menu.selectedItems.mains || [],
                 beverages: data.menu.selectedItems.beverages || [],
                 desserts: data.menu.selectedItems.desserts || [],
             },
