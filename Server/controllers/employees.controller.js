@@ -130,7 +130,7 @@ export const getAllAssignedEvents = async (req, res) => {
       .populate("assignedChefs", "name empType profilePic")
       .populate("assignedVehicles", "model plateNumber manufacturer")
       .populate("goodsUsed","itemName quantity")
-      .select("eventName eventDate eventTime venue bookingStatus clientName totalAmount");
+      .select("eventName eventDate eventTime venue bookingStatus clientName totalAmount deposited");
 
     res.status(200).json({ events });
   } catch (error) {

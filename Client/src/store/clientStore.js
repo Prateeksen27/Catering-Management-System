@@ -6,8 +6,8 @@ export const clientAuthStore = create((set) => ({
   estimatedPrice: 0,
   isLoading: false,
   menu: {
-    appetizers: [],
-    mains: [],
+    starters: [],
+    maincourse: [],
     desserts: [],
     beverages: [],
   },

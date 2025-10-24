@@ -4,10 +4,10 @@ import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 
 
-export const useBookingStore = create((set,get) => ({
+export const useBookingStore = create((set, get) => ({
     queries: [],
     pendingBookings: [],
-    completedBookings:[],
+    completedBookings: [],
     booked: [],
     isLoading: false,
     fetchAllQueries: async () => {
@@ -49,7 +49,7 @@ export const useBookingStore = create((set,get) => ({
         try {
             const responce = await axiosInstance.get('/booking/getAllBookedEvents');
             set({ booked: responce.data.responce })
-          console.log("Booked",get().booked);
+            console.log("Booked", get().booked);
             toast.success("Fetched booked events", { id: loadingToast })
         } catch (error) {
             console.log(error);
@@ -57,32 +57,47 @@ export const useBookingStore = create((set,get) => ({
 
         }
     },
-    confirmBooking:async (data)=>{
+    confirmBooking: async (data) => {
         const loadingToast = toast.loading("Booking in progress...")
         try {
-            const responce = await axiosInstance.post('/booking/confirmBooking',data)
-            const pendingBookings = get().pendingBookings.filter(d=>d._id!=responce.data.refEvent)
-            set({pendingBookings:pendingBookings})
-            toast.success("Event Booked Succesfully!",{id:loadingToast})
+            const responce = await axiosInstance.post('/booking/confirmBooking', data)
+            const pendingBookings = get().pendingBookings.filter(d => d._id != responce.data.refEvent)
+            set({ pendingBookings: pendingBookings })
+            toast.success("Event Booked Succesfully!", { id: loadingToast })
 
         } catch (error) {
             console.log(error);
-            toast.error("Error Booking Event!",{id:loadingToast})
-            
-            
+            toast.error("Error Booking Event!", { id: loadingToast })
+
+
         }
     },
-    fetchAllCompletedBookings:async ()=>{
-         const loadingToast = toast.loading("Fetching Data...")
-         try {
+    fetchAllCompletedBookings: async () => {
+        const loadingToast = toast.loading("Fetching Data...")
+        try {
             const res = await axiosInstance.get('/booking/getCompletedBookings')
-            set({completedBookings:res.data.data})
-            toast.success("Fetched Successfully!",{id:loadingToast})
-         } catch (error) {
+            set({ completedBookings: res.data.data })
+            toast.success("Fetched Successfully!", { id: loadingToast })
+        } catch (error) {
             console.log(error);
-            toast.error("Error Fetching Data!",{id:loadingToast})
-            
-            
-         }
+            toast.error("Error Fetching Data!", { id: loadingToast })
+
+
+        }
+    },
+    updateStautsAndDeposit: async (id, data) => {
+        const loadingToast = toast.loading("Updating...")
+        try {
+            const res = await axiosInstance.patch(`/booking/updateStatus/${id}`, data)
+            set((state) => ({
+                completedBookings: state.completedBookings.map((b) =>
+                    b._id === id ? res.data.data : b
+                ),
+            }));
+            toast.success("Updated Successfully", { id: loadingToast })
+        } catch (error) {
+            console.error("Update failed:", error);
+            toast.error("Failed to update", { id: loadingToast });
+        }
     }
 }))

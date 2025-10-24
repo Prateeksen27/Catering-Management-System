@@ -32,10 +32,12 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useBookingStore } from "../store/useBookingStore";
 
 const AssignedEvents: React.FC = () => {
   const { assignedEvents = [], fetchAllAssignedEvents } = useEmployeeStore();
   const { user } = useAuthStore();
+  const { updateStautsAndDeposit } = useBookingStore()
 
   const [selectedStaff, setSelectedStaff] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -67,9 +69,9 @@ const AssignedEvents: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status?.toLowerCase()) {
-      case "completed":
-        return <Badge className="bg-green-500 text-white">Completed</Badge>;
-      case "in-progress":
+      case "confirmed":
+        return <Badge className="bg-green-500 text-white">Confirmed</Badge>;
+      case "in progress":
         return <Badge className="bg-blue-500 text-white">In Progress</Badge>;
       case "overdue":
         return <Badge className="bg-red-500 text-white">Overdue</Badge>;
@@ -129,11 +131,15 @@ const AssignedEvents: React.FC = () => {
     if (!selectedEvent || !formData.bookingStatus) return;
 
     // Add your update logic here
-    console.log("Updating event:", selectedEvent._id, "with data:", {
-      bookingStatus: formData.bookingStatus,
-      deposited: parseFloat(formData.deposited) || 0,
-    });
-    
+    // console.log("Updating event:", selectedEvent._id, "with data:", {
+    //   bookingStatus: formData.bookingStatus,
+    //   deposited: parseFloat(formData.deposited) || 0,
+    // });
+
+    updateStautsAndDeposit(selectedEvent._id, formData)
+    if (user?._id) {
+      fetchAllAssignedEvents(user._id);
+    }
     // Close dialog after update
     setIsStatusDialogOpen(false);
     setSelectedEvent(null);
@@ -282,7 +288,7 @@ const AssignedEvents: React.FC = () => {
                       View Assigned Staffs
                     </Button>
                     {task.status !== "completed" && (
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => handleUpdateStatus(task)}
                       >
@@ -322,7 +328,7 @@ const AssignedEvents: React.FC = () => {
                   <div>
                     <p className="font-medium">{staff.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {staff.role || "Staff"}
+                      {staff.empType || "Staff"}
                     </p>
                   </div>
                 </div>
@@ -363,24 +369,25 @@ const AssignedEvents: React.FC = () => {
 
             {/* Deposited Amount */}
             <div className="space-y-2">
-              <Label htmlFor="deposited">Deposited Amount (₹)</Label>
+              <Label htmlFor="deposited">Deposite Amount (₹)</Label>
               <Input
                 id="deposited"
                 type="number"
+                min={0}
                 placeholder="Enter deposited amount"
                 value={formData.deposited}
                 onChange={(e) => handleInputChange("deposited", e.target.value)}
               />
               {selectedEvent && (
                 <p className="text-xs text-muted-foreground">
-                  Total Amount: ₹{selectedEvent.totalAmount || 0} | 
+                  Total Amount: ₹{selectedEvent.totalAmount || 0} |
                   Due: ₹{calculateDueAmount()}
                 </p>
               )}
             </div>
 
             {/* Current Status Display */}
-            {selectedEvent && (
+            {/* {selectedEvent && (
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm font-medium">Current Status</p>
                 <div className="flex items-center gap-2 mt-1">
@@ -391,7 +398,7 @@ const AssignedEvents: React.FC = () => {
                   </span>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           <div className="flex justify-end gap-3 mt-6">

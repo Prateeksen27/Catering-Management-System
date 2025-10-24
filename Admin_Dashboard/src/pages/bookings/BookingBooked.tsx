@@ -93,7 +93,7 @@ const BookingBooked: React.FC = () => {
                       <p className="text-sm text-muted-foreground">Deposit</p>
                       <div className='flex items-center'>
                         <IconCurrencyRupee />
-                        <p className="font-medium">{booking.deposit || 0}</p>
+                        <p className="font-medium">{booking.deposited || 0}</p>
                       </div>
                     </div>
                   </div>

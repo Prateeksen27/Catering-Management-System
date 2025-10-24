@@ -1,5 +1,5 @@
 import express from 'express'
-import { getAllPendinBookings, getAllQueries,confirmBooking,getAllBookedEvents, getAllCompleted, completeBooking, } from '../controllers/booking.controller.js'
+import { getAllPendinBookings, getAllQueries,confirmBooking,getAllBookedEvents, getAllCompleted, completeBooking, updateStatusAndDeposit, } from '../controllers/booking.controller.js'
 
 const router = express.Router()
 
@@ -9,4 +9,5 @@ router.post('/confirmBooking',confirmBooking)
 router.get('/getAllBookedEvents',getAllBookedEvents)
 router.get('/getCompletedBookings',getAllCompleted)
 router.post('/completeBooking',completeBooking)
+router.patch('/updateStatus/:id',updateStatusAndDeposit)
 export default router

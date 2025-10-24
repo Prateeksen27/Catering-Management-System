@@ -7,25 +7,25 @@ import Employee from "../models/user.model.js";
 import vechileModel from "../models/vechile.model.js";
 
 export const getAllQueries = async (req, res) => {
-    try {
-        const queries = await query.find().sort({ createdAt: -1 });
-        res.status(200).json({ queries });
-    } catch (error) {
-        console.log("Error Fetching queries", error);
-        res.status(500).json({ message: "Internal Server error" })
+  try {
+    const queries = await query.find().sort({ createdAt: -1 });
+    res.status(200).json({ queries });
+  } catch (error) {
+    console.log("Error Fetching queries", error);
+    res.status(500).json({ message: "Internal Server error" })
 
-    }
+  }
 }
 
 export const getAllPendinBookings = async (req, res) => {
-    try {
-        const pendingBookings = await pendingBooking.find().sort({ createdAt: -1 });
-        res.status(201).json({ pendingBookings })
-    } catch (error) {
-        console.log("Error Fetching pending bookings", error);
-        res.status(500).json({ message: "Internal server error" })
+  try {
+    const pendingBookings = await pendingBooking.find().sort({ createdAt: -1 });
+    res.status(201).json({ pendingBookings })
+  } catch (error) {
+    console.log("Error Fetching pending bookings", error);
+    res.status(500).json({ message: "Internal server error" })
 
-    }
+  }
 }
 
 export const confirmBooking = async (req, res) => {
@@ -140,46 +140,81 @@ export const confirmBooking = async (req, res) => {
   }
 };
 
-export const getAllBookedEvents = async (req,res)=>{
-    try {
-        const responce = await Booked.find().sort({ createdAt: -1 });
-        res.status(201).json({responce})
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            message:"Internal Server Error"
-        })
-        
-        
-    }
+export const getAllBookedEvents = async (req, res) => {
+  try {
+    const responce = await Booked.find().sort({ createdAt: -1 });
+    res.status(201).json({ responce })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal Server Error"
+    })
+
+
+  }
 };
 
-export const getAllCompleted = async(req,res) => {
+export const getAllCompleted = async (req, res) => {
   try {
-    const completedbooking = await Completed.find().sort({createdAt: -1});
-    res.status(200).json({success:true, data:completedbooking})
+    const completedbooking = await Completed.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: completedbooking })
   } catch (error) {
-    res.status(500).json({success:false,message:error.message});
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 
-export const completeBooking = async (req,res)=>{
+export const completeBooking = async (req, res) => {
   try {
-    const data = req.body;  
+    const data = req.body;
     const newCompleted = await Completed.create(
       data
     )
     res.status(200).json({
-      success:true,
-      message:"Successfully Created",
-      data:newCompleted
+      success: true,
+      message: "Successfully Created",
+      data: newCompleted
     })
 
   } catch (error) {
     res.status(500).json({
-      success:false,
-      message:"Gandi ta mareili re sanga"
+      success: false,
+      message: "Gandi ta mareili re sanga"
     })
   }
 }
+
+export const updateStatusAndDeposit = async (req, res) => {
+  try {
+    const { bookingStatus, deposited } = req.body; 
+    const { id } = req.params;
+
+    const booking = await Booked.findById(id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Add the new deposit amount to the existing one
+    if(booking.totalAmount < deposited){
+      return res.status(500).json({
+        message:"Deposit cannot exceed total amount"
+      })
+    }
+    const updatedDeposit = (booking.deposited || 0) + Number(deposited || 0);
+
+    booking.bookingStatus = bookingStatus || booking.bookingStatus;
+    booking.deposited = updatedDeposit;
+
+    const updatedBooking = await booking.save();
+
+    res.status(200).json({
+      message: "Booking status and deposit updated successfully",
+      data: updatedBooking,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({
+      message: "Internal Server Error!",
+    });
+  }
+};
