@@ -33,7 +33,8 @@ export const sendQuery = async (req, res) => {
 
 export const sendBookingRequest = async (req, res) => {
     try {
-        const data = req.body        
+        const data = req.body
+        console.log("Received booking data: ", data);
         if (!data.personal || !data.event || !data.menu) {
             return res.status(400).json({
                 message: "Missing required booking sections (personal, event, or menu).",
@@ -63,6 +64,7 @@ export const sendBookingRequest = async (req, res) => {
             priority: "Medium", // default priority
             status: "Pending", // default
         });
+        console.log(newBooking)
         await newBooking.save()
 
         res.status(201).json({

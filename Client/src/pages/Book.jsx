@@ -18,6 +18,7 @@ export default function BookingWizard() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const {sendBooking} = clientAuthStore()
+  
   useEffect(() => {
     localStorage.setItem("catering_booking_draft", JSON.stringify(data));
   }, [data]);
@@ -71,9 +72,22 @@ export default function BookingWizard() {
   }
 
   async function onNext() {
+    // SPECIAL VALIDATION FOR PAYMENT STEP (step 3)
+    if (step === 3) {
+      const estimatedTotal = data.menu.estimatedPrice * (10 + data.event.guests);
+      const minimumRequired = estimatedTotal * 0.5; // 50% of total
+      
+      // Check if payment meets 50% requirement
+      if (!data.payment.totalPricePaid || data.payment.totalPricePaid < minimumRequired) {
+        alert(`❌ Payment Requirement Not Met!\n\nPlease pay at least 50% advance payment (₹${minimumRequired.toFixed(2)}) to continue.`);
+        return;
+      }
+    }
+    
     if (!validate(step)) return;
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
+  
   function onBack() {
     setStep((s) => Math.max(s - 1, 0));
   }
@@ -97,6 +111,16 @@ export default function BookingWizard() {
       setSubmitting(false);
     }
   }
+
+  // Calculate if payment is sufficient (50% or more)
+  const isPaymentSufficient = useMemo(() => {
+    if (step !== 3) return true; // Only check for payment step
+    
+    const estimatedTotal = data.menu.estimatedPrice * (10 + data.event.guests);
+    const minimumRequired = estimatedTotal * 0.5;
+    
+    return data.payment.totalPricePaid >= minimumRequired;
+  }, [step, data.payment.totalPricePaid, data.menu.estimatedPrice, data.event.guests]);
 
   if (submitted) {
     return (
@@ -159,7 +183,6 @@ export default function BookingWizard() {
           {step === 4 && (
             <Review data={data} errors={errors} onToggleTerms={(v) => update(["termsAccepted"], v)} />
           )}
-          
 
           {/* Actions */}
           <div className="mt-8 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 justify-between">
@@ -167,32 +190,55 @@ export default function BookingWizard() {
               <button
                 onClick={onBack}
                 disabled={step === 0}
-                className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 disabled:opacity-40"
+                className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 disabled:opacity-40 hover:bg-slate-50 transition-colors"
               >
                 Back
               </button>
               <button
                 onClick={() => setData(initialData)}
-                className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700"
+                className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Reset
               </button>
             </div>
 
             {step < 4 ? (
-              <button onClick={onNext} className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700">
+              <button 
+                onClick={onNext} 
+                disabled={step === 3 && !isPaymentSufficient}
+                className={`px-6 py-2.5 rounded-xl text-white transition-colors ${
+                  step === 3 && !isPaymentSufficient 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
+              >
                 Continue
               </button>
             ) : (
               <button
                 onClick={onSubmit}
                 disabled={submitting}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
+                className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors"
               >
                 {submitting ? "Submitting..." : "Confirm Booking"}
               </button>
             )}
           </div>
+          
+          {/* Payment step warning message */}
+          {step === 3 && !isPaymentSufficient && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm font-medium text-red-800 flex items-center mb-1">
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                Payment Requirement Not Met
+              </p>
+              <p className="text-xs text-red-600">
+                You need to pay at least 50% advance to continue. Current payment: ₹{data.payment.totalPricePaid || 0}
+              </p>
+            </div>
+          )}
         </div>
 
         <footer className="py-10 text-center text-xs text-slate-500">© {new Date().getFullYear()} Your Catering Co.</footer>
