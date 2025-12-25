@@ -42,14 +42,8 @@ const Header = () => {
             <NavLink to="/services" className={navItemClass({ path: "/services" })}>
               Services
             </NavLink>
-            <NavLink to="/menu" className={navItemClass({ path: "/menu" })}>
-              Menu
-            </NavLink>
             <NavLink to="/gallery" className={navItemClass({ path: "/gallery" })}>
               Gallery
-            </NavLink>
-            <NavLink to="/blogs" className={navItemClass({ path: "/blogs" })}>
-              Blogs
             </NavLink>
             <NavLink to="/contact" className={navItemClass({ path: "/contact" })}>
               Contact

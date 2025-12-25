@@ -7,6 +7,7 @@ import Review from "../components/Review";
 import { STEPS, initialData } from "../assets/constants";
 import { Check } from "lucide-react"; 
 import { clientAuthStore } from "../store/clientStore";
+import PaymentForm from "../components/PaymentForm";
 
 export default function BookingWizard() {
   const [step, setStep] = useState(0);
@@ -62,7 +63,7 @@ export default function BookingWizard() {
         e.menu = "Select at least one menu item.";
       }
     }
-    if (currentStep === 3) {
+    if (currentStep === 4) {
       if (!data.termsAccepted) e.terms = "Please accept terms to continue";
     }
     setErrors(e);
@@ -82,7 +83,7 @@ export default function BookingWizard() {
   }
 
   async function onSubmit() {
-    if (!validate(3)) return;
+    if (!validate(4)) return;
     setSubmitting(true);
     try {
       console.log(data)
@@ -152,9 +153,13 @@ export default function BookingWizard() {
           {step === 2 && (
             <MenuForm data={data.menu} errors={errors} onChange={(path, v) => update(["menu", ...path], v)} />
           )}
-          {step === 3 && (
+          {step==3 && (
+            <PaymentForm  data={data.payment} extra={data} errors={errors} onChange={(k,v)=>update(["payment",k],v)} />
+          )}
+          {step === 4 && (
             <Review data={data} errors={errors} onToggleTerms={(v) => update(["termsAccepted"], v)} />
           )}
+          
 
           {/* Actions */}
           <div className="mt-8 flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 justify-between">
@@ -174,7 +179,7 @@ export default function BookingWizard() {
               </button>
             </div>
 
-            {step < 3 ? (
+            {step < 4 ? (
               <button onClick={onNext} className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700">
                 Continue
               </button>

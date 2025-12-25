@@ -58,6 +58,12 @@ const BookedSchema = new mongoose.Schema({
     enum: ["Paid", "Partially Paid", "Unpaid"],
     default: "Unpaid",
   },
+  paymentDetails: {
+    totalPaid: { type: Number, default: 0 },
+    paymentMethod: { type: String, trim: true },
+    transactionId: { type: String, trim: true },
+    fullyPaid: { type: Boolean, default: false }
+  },
   assignedStaff: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
   assignedChefs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
   assignedVehicles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Vehicle" }],
@@ -91,6 +97,11 @@ BookedSchema.pre("save", async function (next) {
   if (!this.bookingId) {
     const lastBooking = await this.constructor.findOne().sort({ createdAt: -1 });
     let newNumber = 1;
+    if(this.paymentDetails.totalPaid >= this.totalAmount){
+      this.paymentStatus = "Paid";
+      this.paymentDetails.fullyPaid = true;
+    }
+    this.deposited = this.paymentDetails.totalPaid;
 
     if (lastBooking && lastBooking.bookingId) {
       const lastNum = parseInt(lastBooking.bookingId.replace("BOOK", ""), 10);

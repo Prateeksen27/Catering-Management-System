@@ -70,6 +70,12 @@ export default function Review({ data, errors, onToggleTerms }) {
     y+=2
     addSection("Estimated Price")
     addField("Price(Approx): ",data.menu.estimatedPrice*(data.event.guests+10))
+    y +=2;
+    addSection("Amount Paid");
+    addField("Total Amount Paid: ", data.payment.totalPricePaid);
+    addField("Payment Method: ", data.payment.paymentMethod);
+    addField("Transaction ID: ", data.payment.transactionId);
+    addField("Percentage Paid: ", ((data.payment.totalPricePaid/(data.menu.estimatedPrice*(data.event.guests+10)))*100).toFixed(2)+"% ");
 
     doc.save("review_form.pdf");
   };
@@ -115,6 +121,14 @@ export default function Review({ data, errors, onToggleTerms }) {
        
           <p><strong>Estimated Price:</strong> {data.menu.estimatedPrice*(data.event.guests+10)}</p>
       
+      </div>
+      {/* Payment Details */}
+      <div>
+        <h3 className="text-lg font-semibold">Payment Details</h3>
+        <p><strong>Total Amount Paid:</strong> {data.payment.totalPricePaid}</p>
+        <p><strong>Payment Method:</strong> {data.payment.paymentMethod}</p>
+        <p><strong>Transaction ID:</strong> {data.payment.transactionId}</p>
+        <p><strong>Percentage Paid:</strong> {((data.payment.totalPricePaid/(data.menu.estimatedPrice*(data.event.guests+10)))*100).toFixed(2)}%</p>
       </div>
 
       {/* Terms Checkbox */}
