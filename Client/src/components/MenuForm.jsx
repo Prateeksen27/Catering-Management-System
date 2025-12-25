@@ -32,7 +32,7 @@ export default function MenuForm({ data, errors, onChange }) {
 
     setEstimatedPrice(total);
     onChange(["estimatedPrice"], total);
-  }, [data.selectedItems, menu, onChange]);
+  }, [data.selectedItems, menu]);
 
   return (
     <div>
