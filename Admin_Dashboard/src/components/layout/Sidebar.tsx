@@ -6,7 +6,6 @@ import {
   Menu as MenuIcon, 
   FileText, 
   Store, 
-  Table2,
   ChevronDown,
   ChevronRight,
   BookOpen,
@@ -19,7 +18,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '../../store/useAuthStore';
-import { IconClipboardCopy } from '@tabler/icons-react';
+import { IconClipboardCopy, IconShoppingCart } from '@tabler/icons-react';
+import { rolePermissions } from '@/config/rolePermissions';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -40,54 +40,81 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const menuItems = [
     {
+      key:"BOOKINGS",
       title: 'Bookings',
       icon: BookOpen,
       path: '/bookings',
       hasSubmenu: true,
       submenu: [
-        { title: 'Inquire', icon: Eye, path: '/bookings/inquire' },
-        { title: 'Booked', icon: CheckCircle, path: '/bookings/booked' },
-        { title: 'Pending', icon: Clock, path: '/bookings/pending' },
-        { title: 'Completed', icon: CheckCircle, path: '/bookings/completed' },
+        {key:"BOOKINGS_INQUIRE", title: 'Inquire', icon: Eye, path: '/bookings/inquire' },
+        { key:"BOOKINGS_BOOKED", title: 'Booked', icon: CheckCircle, path: '/bookings/booked' },
+        { key:"BOOKINGS_PENDING", title: 'Pending', icon: Clock, path: '/bookings/pending' },
+        { key:"BOOKINGS_COMPLETED", title: 'Completed', icon: CheckCircle, path: '/bookings/completed' },
       ]
     },
     {
+      key:"CALENDAR",
       title: 'Calendar',
       icon: Calendar,
       path: '/calendar'
     },
     {
+      key:"EMPLOYEES",
       title: 'Employees',
       icon: Users,
       path: '/employees'
     },
     {
+      key:"MENU",
       title: 'Menu',
       icon: MenuIcon,
       path: '/menu'
     },
     {
+      key:"ASSIGNED_WORK",
       title: 'Assigned Work',
       icon: FileText,
       path: '/assigned-word'
     },
     {
+      key:"ASSIGNED_EVENTS",
       title:"Assigned Events",
       icon:IconClipboardCopy,
       path:'/assigned-events'
     },
     {
+      key:"STORE",
       title: 'Store',
       icon: Store,
       path: '/store'
     },
     {
+      key:"INVENTORY",
+      title:'Inventory',
+      icon:IconShoppingCart,
+      path:'/inventory'
+    },
+    {
+      key:"VEHICLES",
       title: 'Vehicles',
       icon: Car,
       path: '/vehicles'
     }
   ];
   const {user} = useAuthStore()
+  const allowedMenus = rolePermissions[user.empType]?.menus || [];
+  const filteredMenuItems = menuItems.map(item=>{
+    if(item.hasSubmenu){
+      const filteredSubmenu = item.submenu.filter(sub=>
+        allowedMenus.includes(sub.key) || allowedMenus.includes("BOOKINGS_ALL")
+      )
+      if(filteredSubmenu.length === 0){
+        return null;
+      }
+      return {...item,submenu:filteredSubmenu}
+    }
+    return allowedMenus.includes(item.key) ? item : null;
+  }).filter(Boolean);
   return (
     <>
       {/* Mobile overlay */}
@@ -130,7 +157,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Navigation */}
         <nav className="px-2 pb-4 space-y-1">
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <div key={item.title}>
               {item.hasSubmenu ? (
                 <>

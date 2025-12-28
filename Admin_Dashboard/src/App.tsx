@@ -23,156 +23,182 @@ import EmployeeProfile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
 import Vehicle from "./pages/Vehicle";
 import AssignedEvents from "./pages/AssignedEvents";
+import Inventory from "./pages/Inventory";
+import RoleDashboardRedirect from "./pages/RoleDashboardRedirect";
+import Unauthorized from "./pages/Unauthorized";
+
 const queryClient = new QueryClient();
 
 const App = () => {
-  const {isAuthenticated} = useAuthStore()
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <MantineProvider>
       <QueryClientProvider client={queryClient}>
-        {/* <TooltipProvider> */}
-        {/* <Toaster /> */}
-        {/* <Sonner /> */}
         <Toaster />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <Dashboard />
-              </DashboardLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/bookings/inquire" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <BookingInquire />
-              </DashboardLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/bookings/booked" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <BookingBooked />
-              </DashboardLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/bookings/pending" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <BookingPending />
-              </DashboardLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/bookings/completed" element={
 
-              <ProtectedRoute>
-              <DashboardLayout>
-                <BookingCompleted />
-              </DashboardLayout>
+            {/* Root redirect */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+                  <DashboardLayout>
+                    <RoleDashboardRedirect />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Dashboards */}
+            <Route path="/dashboard/admin" element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <DashboardLayout><Dashboard /></DashboardLayout>
               </ProtectedRoute>
             } />
-            <Route path="/bookings" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <BookingInquire />
-              </DashboardLayout>
+
+            <Route path="/dashboard/manager" element={
+              <ProtectedRoute allowedRoles={["MANAGER"]}>
+                <DashboardLayout><Dashboard /></DashboardLayout>
               </ProtectedRoute>
             } />
+
+            <Route path="/dashboard/chef" element={
+              <ProtectedRoute allowedRoles={["CHEF"]}>
+                <DashboardLayout><Dashboard /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/worker" element={
+              <ProtectedRoute allowedRoles={["WORKER"]}>
+                <DashboardLayout><Dashboard /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/driver" element={
+              <ProtectedRoute allowedRoles={["DRIVER"]}>
+                <DashboardLayout><Dashboard /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Bookings */}
+            <Route path="/bookings/inquire" element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+                <DashboardLayout><BookingInquire /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/bookings/booked" element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+                <DashboardLayout><BookingBooked /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/bookings/pending" element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <DashboardLayout><BookingPending /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/bookings/completed" element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+                <DashboardLayout><BookingCompleted /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Common */}
             <Route path="/calendar" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <Calendar />
-              </DashboardLayout>
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+                <DashboardLayout><Calendar /></DashboardLayout>
               </ProtectedRoute>
             } />
+
             <Route path="/employees" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <Employees />
-              </DashboardLayout>
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+                <DashboardLayout><Employees /></DashboardLayout>
               </ProtectedRoute>
             } />
+
             <Route path="/menu" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <Menu />
-              </DashboardLayout>
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF"]}>
+                <DashboardLayout><Menu /></DashboardLayout>
               </ProtectedRoute>
             } />
+
             <Route path="/assigned-word" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <AssignedWord />
-              </DashboardLayout>
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+                <DashboardLayout><AssignedWord /></DashboardLayout>
               </ProtectedRoute>
             } />
-            <Route path='/assigned-events' element={
-              <ProtectedRoute>
-                <DashboardLayout>
-                  <AssignedEvents />
-                </DashboardLayout>
+
+            <Route path="/assigned-events" element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+                <DashboardLayout><AssignedEvents /></DashboardLayout>
               </ProtectedRoute>
-            } />y
+            } />
+
             <Route path="/store" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <Store />
-              </DashboardLayout>
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "WORKER"]}>
+                <DashboardLayout><Store /></DashboardLayout>
               </ProtectedRoute>
             } />
-            <Route path="/tables" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <Tables />
-              </DashboardLayout>
+
+            <Route path="/inventory" element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF"]}>
+                <DashboardLayout><Inventory /></DashboardLayout>
               </ProtectedRoute>
             } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <EmployeeProfile />
-              </DashboardLayout>
-              </ProtectedRoute>
-            }
-            />
-            <Route path="/userProfile" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <UserProfile />
-              </DashboardLayout>
-              </ProtectedRoute>
-            }
-            />
+
             <Route path="/vehicles" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <Vehicle />
-              </DashboardLayout>
-              </ProtectedRoute>
-            }
-            />
-            
-            <Route path='/login' element={
-              isAuthenticated?
-               <Navigate to="/"  />:
-              <SignInPage />
-             
-              
-              } />
-            <Route path="*" element={
-              <ProtectedRoute>
-              <DashboardLayout>
-                <NotFound />
-              </DashboardLayout>
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "DRIVER"]}>
+                <DashboardLayout><Vehicle /></DashboardLayout>
               </ProtectedRoute>
             } />
+
+            {/* Profile */}
+            <Route path="/profile" element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+                <DashboardLayout><EmployeeProfile /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/userProfile" element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+                <DashboardLayout><UserProfile /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Login */}
+            <Route
+              path="/login"
+              element={isAuthenticated ? <Navigate to="/" /> : <SignInPage />}
+            />
+
+            {/* 404 */}
+            <Route
+              path="*"
+              element={
+                <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+                  <DashboardLayout><NotFound /></DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            {/* Unauthorized */}
+            <Route path='/unauthorized'
+              element={
+                <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+                  <DashboardLayout>
+                    <Unauthorized />
+                  </DashboardLayout>
+                </ProtectedRoute>
+
+              } />
           </Routes>
         </BrowserRouter>
-        {/* </TooltipProvider> */}
       </QueryClientProvider>
     </MantineProvider>
-  )
-}
+  );
+};
 
 export default App;

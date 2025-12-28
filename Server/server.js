@@ -9,6 +9,7 @@ import employeeRoutes from './routes/employees.routes.js'
 import menuRoutes from './routes/menu.routes.js'
 import storeRoutes from './routes/store.routes.js'
 import vehicleRoutes from './routes/vehicle.route.js'
+import inventoryRoutes from './routes/inventory.routes.js'
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 dotenv.config();
@@ -30,6 +31,7 @@ app.use('/api/employees',employeeRoutes)
 app.use("/api/menu",menuRoutes)
 app.use("/api/store",storeRoutes)
 app.use("/api/vehicle",vehicleRoutes)
+app.use('/api/inventory',inventoryRoutes)
 mongoose.connect(process.env.URI).then(()=>{
   console.log("Connected to MongoDB");
 })
