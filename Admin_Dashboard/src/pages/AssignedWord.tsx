@@ -1,11 +1,23 @@
-import React from 'react';
-import { FileText, Clock, CheckCircle, AlertCircle, User, Calendar } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  User,
+  Calendar
+} from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
+// ✅ Mantine imports
+import { Modal, Select, NumberInput } from '@mantine/core';
+
 const AssignedWord: React.FC = () => {
-  const tasks = [
+  // ✅ tasks as STATE
+  const [tasks, setTasks] = useState([
     {
       id: 1,
       title: 'Create Wedding Photography Contract',
@@ -90,7 +102,37 @@ const AssignedWord: React.FC = () => {
       completedHours: 0,
       client: 'Internal'
     }
-  ];
+  ]);
+
+  // ✅ Selected task
+  const [selectedTaskId, setSelectedTaskId] = useState<number>(tasks[0].id);
+  const selectedTask = tasks.find(task => task.id === selectedTaskId);
+
+  // ✅ Modal states
+  const [opened, setOpened] = useState(false);
+  const [status, setStatus] = useState('');
+  const [priority, setPriority] = useState('');
+  const [completedHours, setCompletedHours] = useState(0);
+
+  // Sync selected task to modal fields
+  useEffect(() => {
+    if (selectedTask) {
+      setStatus(selectedTask.status);
+      setPriority(selectedTask.priority);
+      setCompletedHours(selectedTask.completedHours);
+    }
+  }, [selectedTask]);
+
+  const handleUpdateTask = () => {
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === selectedTaskId
+          ? { ...task, status, priority, completedHours }
+          : task
+      )
+    );
+    setOpened(false);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -133,18 +175,37 @@ const AssignedWord: React.FC = () => {
     }
   };
 
-  const getProgressPercentage = (completed: number, estimated: number) => {
-    return Math.round((completed / estimated) * 100);
-  };
+  const getProgressPercentage = (completed: number, estimated: number) =>
+    Math.round((completed / estimated) * 100);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Assigned Work</h1>
-        <p className="text-muted-foreground">Track and manage assigned tasks and documentation</p>
+      {/* ===== HEADER ===== */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Assigned Work</h1>
+          <p className="text-muted-foreground">
+            Track and manage assigned tasks and documentation
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <select
+            className="border rounded-md px-3 py-2 text-sm"
+            value={selectedTaskId}
+            onChange={(e) => setSelectedTaskId(Number(e.target.value))}
+          >
+            {tasks.map(task => (
+              <option key={task.id} value={task.id}>
+                {task.title}
+              </option>
+            ))}
+          </select>
+
+          <Button onClick={() => setOpened(true)}>Update Task</Button>
+        </div>
       </div>
 
-      {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
@@ -203,91 +264,98 @@ const AssignedWord: React.FC = () => {
         </Card>
       </div>
 
-      {/* Task List */}
-      <div className="grid gap-6">
-        {tasks.map((task) => (
-          <Card key={task.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="flex items-center gap-3">
-                    {getStatusIcon(task.status)}
-                    {task.title}
-                    {getStatusBadge(task.status)}
-                    {getPriorityBadge(task.priority)}
-                  </CardTitle>
-                  <p className="text-muted-foreground mt-1">{task.description}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Progress</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {getProgressPercentage(task.completedHours, task.estimatedHours)}%
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Assigned To</p>
-                    <p className="font-medium">{task.assignedTo}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Due Date</p>
-                    <p className="font-medium">{task.dueDate}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Category</p>
-                  <Badge variant="outline">{task.category}</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Client</p>
-                  <p className="font-medium">{task.client}</p>
-                </div>
-              </div>
+      {/* ===== TASK CARD ===== */}
+      {selectedTask && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex gap-2 items-center">
+              {getStatusIcon(selectedTask.status)}
+              {selectedTask.title}
+              {getStatusBadge(selectedTask.status)}
+              {getPriorityBadge(selectedTask.priority)}
+            </CardTitle>
+            <p className="text-muted-foreground">{selectedTask.description}</p>
+          </CardHeader>
 
-              {/* Progress Bar */}
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Time Progress</span>
-                  <span className="text-muted-foreground">
-                    {task.completedHours}h / {task.estimatedHours}h
-                  </span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${getProgressPercentage(task.completedHours, task.estimatedHours)}%` }}
-                  ></div>
-                </div>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="flex gap-2 items-center">
+                <User className="h-4 w-4" />
+                {selectedTask.assignedTo}
               </div>
+              <div className="flex gap-2 items-center">
+                <Calendar className="h-4 w-4" />
+                {selectedTask.dueDate}
+              </div>
+              <Badge variant="outline">{selectedTask.category}</Badge>
+              <div>{selectedTask.client}</div>
+            </div>
 
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-muted-foreground">
-                  <span>Assigned by: {task.assignedBy}</span>
-                  <span className="ml-4">Task ID: #{task.id.toString().padStart(3, '0')}</span>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
-                    View Details
-                  </Button>
-                  {task.status !== 'completed' && (
-                    <Button size="sm">
-                      Update Progress
-                    </Button>
-                  )}
-                </div>
+            <div className="mb-4">
+              <div className="flex justify-between text-sm mb-1">
+                <span>Progress</span>
+                <span>
+                  {selectedTask.completedHours}/{selectedTask.estimatedHours}h
+                </span>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              <div className="w-full bg-muted h-2 rounded-full">
+                <div
+                  className="bg-primary h-2 rounded-full"
+                  style={{
+                    width: `${getProgressPercentage(
+                      selectedTask.completedHours,
+                      selectedTask.estimatedHours
+                    )}%`
+                  }}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ===== MANTINE MODAL ===== */}
+      <Modal opened={opened} onClose={() => setOpened(false)} title="Update Task" centered>
+        <div className="space-y-4">
+          <Select
+            label="Status"
+            value={status}
+            onChange={(value) => setStatus(value!)}
+            data={[
+              { value: 'pending', label: 'Pending' },
+              { value: 'in-progress', label: 'In Progress' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'overdue', label: 'Overdue' }
+            ]}
+          />
+
+          <Select
+            label="Priority"
+            value={priority}
+            onChange={(value) => setPriority(value!)}
+            data={[
+              { value: 'high', label: 'High' },
+              { value: 'medium', label: 'Medium' },
+              { value: 'low', label: 'Low' }
+            ]}
+          />
+
+          <NumberInput
+            label="Completed Hours"
+            value={completedHours}
+            min={0}
+            max={selectedTask?.estimatedHours}
+            onChange={(value) => setCompletedHours(Number(value))}
+          />
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setOpened(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateTask}>Save Changes</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
