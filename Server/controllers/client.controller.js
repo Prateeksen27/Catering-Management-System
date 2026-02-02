@@ -32,50 +32,80 @@ export const sendQuery = async (req, res) => {
 }
 
 export const sendBookingRequest = async (req, res) => {
-    try {
-        const data = req.body
-        console.log("Received booking data: ", data);
-        if (!data.personal || !data.event || !data.menu) {
-            return res.status(400).json({
-                message: "Missing required booking sections (personal, event, or menu).",
-            });
-        }
-        const newBooking = new pendingBooking({
-            clientDetails: {
-                fullName: data.personal.fullName,
-                email: data.personal.email,
-                phone: data.personal.phone,
-            },
-            eventDetails: {
-                eventName: data.event.eventName,
-                eventDate: data.event.date,
-                eventTime: data.event.time,
-                pax: data.event.guests,
-                venue: data.event.venue,
-                notes: data.event.notes,
-            },
-            menu: {
-                starters: data.menu.selectedItems.appetizers || [],
-                maincourse: data.menu.selectedItems.mains || [],
-                beverages: data.menu.selectedItems.beverages || [],
-                desserts: data.menu.selectedItems.desserts || [],
-            },
-            estimatedAmount: data.menu.estimatedPrice || 0,
-            priority: "Medium", // default priority
-            status: "Pending", // default
-        });
-        console.log(newBooking)
-        await newBooking.save()
+  try {
+    const data = req.body;
+   
 
-        res.status(201).json({
-            message:"Booking submitted successfully!",
-        })
-    } catch (error) {
-        console.log("Error creating pending booking: ",error);
-        res.status(500).json({
-            message:"Internal Server Error",
-            error:error.message
-        })
-        
+    // ✅ Basic validation
+    if (!data.personal || !data.event || !data.menu) {
+      return res.status(400).json({
+        message:
+          "Missing required booking sections (personal, event, or menu).",
+      });
     }
-}
+
+    const newBooking = new pendingBooking({
+      // 👤 Client Details
+      clientDetails: {
+        fullName: data.personal.fullName,
+        email: data.personal.email,
+        phone: data.personal.phone,
+      },
+
+      // 🎉 Event Details
+      eventDetails: {
+        eventName: data.event.eventName,
+        eventDate: data.event.date,
+        eventTime: data.event.time,
+        pax: data.event.guests,
+        venue: data.event.venue,
+        notes: data.event.notes,
+      },
+
+      // 🍽️ Menu Details
+      menu: {
+        starters: data.menu.selectedItems?.appetizers || [],
+        maincourse: data.menu.selectedItems?.maincourse || [],
+        beverages: data.menu.selectedItems?.beverages || [],
+        desserts: data.menu.selectedItems?.desserts || []
+
+        // ✅ Custom Menu Items
+        
+      },
+      customMenuItems: (data.menu.customMenuItems || []).map(
+          (item) => ({
+            name: item.name,
+            category: item.category,
+          })
+        ),
+
+      // 💰 Estimated Amount
+      Payment_Details:{
+            estimatedAmount: (data.menu.estimatedPrice || 0) * ((data.event.guests || 0) + 10) || 0,
+            paidAmount: data.payment.totalPricePaid || 0,
+            paymentMethods: data.payment.paymentMethod || 'other',
+            transactionId: data.payment.transactionId || ''
+        },
+
+
+      // ⚙️ Defaults
+      priority: "Medium",
+      status: "Pending",
+    });
+
+   
+
+    await newBooking.save();
+
+    res.status(201).json({
+      message: "Booking submitted successfully!",
+      bookingId: newBooking.bookingId,
+    });
+  } catch (error) {
+    console.error("Error creating pending booking:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};

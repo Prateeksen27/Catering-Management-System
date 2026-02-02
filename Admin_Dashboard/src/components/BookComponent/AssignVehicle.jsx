@@ -3,17 +3,18 @@ import {
   Card, Group, Text, SimpleGrid, Container, MultiSelect, SegmentedControl,
   Badge, Stack, ActionIcon, Tooltip, Modal, Button, Grid, Box, ScrollArea
 } from "@mantine/core";
-import { 
-  IconInfoCircle, IconGasStation, IconWeight, IconCar, 
+import {
+  IconInfoCircle, IconGasStation, IconWeight, IconCar,
   IconCheck, IconFilter, IconRefresh
 } from "@tabler/icons-react";
 import { useDataStore } from "../../store/useDataStore";
 import { useVehicleStore } from "../../store/useVehicleStore";
+import toast from "react-hot-toast";
 
 const AssignVehicleStep = () => {
   // Get vehicle data from store
   const { vehicles, fetchVehicles } = useVehicleStore();
-  
+
   // Get vehicle selection state from data store
   const {
     selectedVehicles,
@@ -21,7 +22,7 @@ const AssignVehicleStep = () => {
     getSelectedVehiclesCount
   } = useDataStore();
 
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("Available");
   const [fuelFilter, setFuelFilter] = useState([]);
   const [detailModal, setDetailModal] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,9 +39,9 @@ const AssignVehicleStep = () => {
   }, [fetchVehicles]);
 
   const fuelOptions = [
-    { value: "Petrol", label: "Petrol" }, 
+    { value: "Petrol", label: "Petrol" },
     { value: "Diesel", label: "Diesel" },
-    { value: "CNG", label: "CNG" }, 
+    { value: "CNG", label: "CNG" },
     { value: "Electric", label: "Electric" },
     { value: "Other", label: "Other" },
   ];
@@ -48,28 +49,38 @@ const AssignVehicleStep = () => {
   // Filter vehicles based on selected criteria
   const filteredVehicles = vehicles.filter(
     (v) =>
+      // v.status !== "assigned" && // 👈 THIS LINE HIDES ASSIGNED VEHICLES
       (statusFilter === "All" || v.status === statusFilter) &&
       (fuelFilter.length === 0 || fuelFilter.includes(v.fuelType)) &&
       (v.plateNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-       v.model?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-       v.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()))
+        v.model?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleVehicleToggle = (vehicleId) => {
+    const vehicle = vehicles.find((v) => v._id === vehicleId);
+
+    if (vehicle?.status === "assigned") {
+      toast.error(
+        "This vehicle is already assigned to another booking.",
+        { duration: 3000 }
+      );
+      return;
+    }
     toggleVehicle(vehicleId);
   };
 
   const handleClearFilters = () => {
-    setStatusFilter("All");
+    setStatusFilter("Available");
     setFuelFilter([]);
     setSearchQuery("");
   };
 
   const getStatusColor = (status) => {
-    const colors = { 
-      available: "green", 
-      maintenance: "orange", 
-      assigned: "blue" 
+    const colors = {
+      available: "green",
+      maintenance: "orange",
+      assigned: "blue"
     };
     return colors[status] || "gray";
   };
@@ -122,10 +133,10 @@ const AssignVehicleStep = () => {
                 Filters
               </Group>
             </Text>
-            <Button 
-              variant="light" 
-              size="xs" 
-              leftSection={<IconRefresh size={14} />} 
+            <Button
+              variant="light"
+              size="xs"
+              leftSection={<IconRefresh size={14} />}
               onClick={handleClearFilters}
             >
               Clear Filters
@@ -136,11 +147,11 @@ const AssignVehicleStep = () => {
             <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
               <Stack gap={4}>
                 <Text size="xs" fw={500} c="dimmed" component="div">Status</Text>
-                <ScrollArea 
-                  type="never" 
+                <ScrollArea
+                  type="never"
                   offsetScrollbars={false}
                   styles={{
-                    root: { 
+                    root: {
                       width: "100%",
                       "&::-webkit-scrollbar": { display: "none" },
                     }
@@ -150,9 +161,8 @@ const AssignVehicleStep = () => {
                     value={statusFilter}
                     onChange={setStatusFilter}
                     data={[
-                      { label: "All", value: "All" }, 
                       { label: "Available", value: "available" },
-                      { label: "Assigned", value: "assigned" }, 
+                      { label: "Assigned", value: "assigned" },
                       { label: "Maintenance", value: "maintenance" },
                     ]}
                     styles={{
@@ -206,9 +216,9 @@ const AssignVehicleStep = () => {
         </Text>
       </Group>
 
-      <SimpleGrid 
-        cols={{ base: 1, xs: 2, md: 3, xl: 4 }} 
-        spacing={{ base: "sm", md: "lg" }} 
+      <SimpleGrid
+        cols={{ base: 1, xs: 2, md: 3, xl: 4 }}
+        spacing={{ base: "sm", md: "lg" }}
         verticalSpacing={{ base: "sm", md: "lg" }}
       >
         {filteredVehicles.length > 0 ? filteredVehicles.map((vehicle) => {
@@ -221,9 +231,8 @@ const AssignVehicleStep = () => {
               radius="md"
               withBorder
               onClick={() => handleVehicleToggle(vehicle._id)}
-              className={`cursor-pointer transition-all duration-200 relative overflow-visible ${
-                isSelected ? 'border-blue-500 bg-blue-50 transform -translate-y-0.5' : 'border-gray-300'
-              }`}
+              className={`cursor-pointer transition-all duration-200 relative overflow-visible ${isSelected ? 'border-blue-500 bg-blue-50 transform -translate-y-0.5' : 'border-gray-300'
+                }`}
             >
               {isSelected && (
                 <Box className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
@@ -232,19 +241,19 @@ const AssignVehicleStep = () => {
               )}
 
               <Group justify="space-between" mb="xs" wrap="nowrap">
-                <Text 
-                  fw={700} 
-                  size={{ base: "sm", md: "md" }} 
-                  truncate 
-                  style={{ flex: 1 }} 
+                <Text
+                  fw={700}
+                  size={{ base: "sm", md: "md" }}
+                  truncate
+                  style={{ flex: 1 }}
                   component="div"
                 >
                   {vehicle.plateNumber}
                 </Text>
                 <Group gap="xs" wrap="nowrap">
-                  <Badge 
-                    color={getStatusColor(vehicle.status)} 
-                    variant="light" 
+                  <Badge
+                    color={getStatusColor(vehicle.status)}
+                    variant="light"
                     size="sm"
                   >
                     {vehicle.status?.charAt(0).toUpperCase() + vehicle.status?.slice(1) || 'Unknown'}
@@ -264,11 +273,11 @@ const AssignVehicleStep = () => {
                 </Group>
               </Group>
 
-              <Text 
-                size={{ base: "sm", md: "md" }} 
-                fw={600} 
-                lineClamp={1} 
-                mb={4} 
+              <Text
+                size={{ base: "sm", md: "md" }}
+                fw={600}
+                lineClamp={1}
+                mb={4}
                 component="div"
               >
                 {vehicle.model}
@@ -297,11 +306,11 @@ const AssignVehicleStep = () => {
 
               {vehicle.notes && (
                 <Tooltip label={vehicle.notes} withArrow>
-                  <Text 
-                    size="xs" 
-                    c="orange" 
-                    style={{ fontStyle: 'italic' }} 
-                    lineClamp={1} 
+                  <Text
+                    size="xs"
+                    c="orange"
+                    style={{ fontStyle: 'italic' }}
+                    lineClamp={1}
                     component="div"
                   >
                     Note: {vehicle.notes}
@@ -326,12 +335,12 @@ const AssignVehicleStep = () => {
         )}
       </SimpleGrid>
 
-      <Modal 
-        opened={!!detailModal} 
-        onClose={() => setDetailModal(null)} 
-        title="Vehicle Details" 
-        size="lg" 
-        padding="lg" 
+      <Modal
+        opened={!!detailModal}
+        onClose={() => setDetailModal(null)}
+        title="Vehicle Details"
+        size="lg"
+        padding="lg"
         radius="md"
       >
         {detailModal && (
@@ -340,9 +349,9 @@ const AssignVehicleStep = () => {
               <Text size="xl" fw={700} component="div">
                 {detailModal.plateNumber}
               </Text>
-              <Badge 
-                color={getStatusColor(detailModal.status)} 
-                size="lg" 
+              <Badge
+                color={getStatusColor(detailModal.status)}
+                size="lg"
                 variant="light"
               >
                 {detailModal.status?.charAt(0).toUpperCase() + detailModal.status?.slice(1) || 'Unknown'}

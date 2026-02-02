@@ -26,6 +26,10 @@ import AssignedEvents from "./pages/AssignedEvents";
 import Inventory from "./pages/Inventory";
 import RoleDashboardRedirect from "./pages/RoleDashboardRedirect";
 import Unauthorized from "./pages/Unauthorized";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import ChefDashboard from "./pages/ChefDashboard";
+import DriverDashboard from "./pages/DriverDashboard";
+import WorkerDashboard from "./pages/WorkerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -60,25 +64,25 @@ const App = () => {
 
             <Route path="/dashboard/manager" element={
               <ProtectedRoute allowedRoles={["MANAGER"]}>
-                <DashboardLayout><Dashboard /></DashboardLayout>
+                <DashboardLayout><ManagerDashboard /></DashboardLayout>
               </ProtectedRoute>
             } />
 
             <Route path="/dashboard/chef" element={
               <ProtectedRoute allowedRoles={["CHEF"]}>
-                <DashboardLayout><Dashboard /></DashboardLayout>
+                <DashboardLayout><ChefDashboard /></DashboardLayout>
               </ProtectedRoute>
             } />
 
             <Route path="/dashboard/worker" element={
               <ProtectedRoute allowedRoles={["WORKER"]}>
-                <DashboardLayout><Dashboard /></DashboardLayout>
+                <DashboardLayout><DriverDashboard /></DashboardLayout>
               </ProtectedRoute>
             } />
 
             <Route path="/dashboard/driver" element={
               <ProtectedRoute allowedRoles={["DRIVER"]}>
-                <DashboardLayout><Dashboard /></DashboardLayout>
+                <DashboardLayout><WorkerDashboard /></DashboardLayout>
               </ProtectedRoute>
             } />
 
@@ -94,6 +98,7 @@ const App = () => {
                 <DashboardLayout><BookingBooked /></DashboardLayout>
               </ProtectedRoute>
             } />
+
 
             <Route path="/bookings/pending" element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
@@ -125,9 +130,16 @@ const App = () => {
                 <DashboardLayout><Menu /></DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/assign-work" element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+                <DashboardLayout>
+                  <AssignedWord />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
 
-            <Route path="/assigned-word" element={
-              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+            <Route path="/assigned-work" element={
+              <ProtectedRoute allowedRoles={["CHEF", "WORKER", "DRIVER"]}>
                 <DashboardLayout><AssignedWord /></DashboardLayout>
               </ProtectedRoute>
             } />

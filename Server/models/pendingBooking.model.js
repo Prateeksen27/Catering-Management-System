@@ -60,12 +60,24 @@ const pendingBookingSchema = new mongoose.Schema(
             enum: ["High", "Medium", "Low"],
             default: "Medium",
         },
-        estimatedAmount: {
-            type: Number,
-            required: true,
-            min: 0,
+        Payment_Details:{
+            estimatedAmount: {
+                type: Number,
+                required: true,
+                min: 0,
+            },
+            paidAmount: {
+                type: Number,
+                default: 0,
+                min: 0,
+            },
+            paymentMethods:{
+                type: String,
+                default: 'other'
+            },
+            transactionId:{ type: String, trim: true
+            }
         },
-
         // 🍽️ Menu Section (Array-based)
         menu: {
             starters: [{ type: String, trim: true }],
@@ -73,7 +85,16 @@ const pendingBookingSchema = new mongoose.Schema(
             beverages: [{ type: String, trim: true }],
             desserts: [{ type: String, trim: true }],
         },
-
+        customMenuItems: [
+            {
+                name: String,
+                category: {
+                    type: String, // 👈 THIS WAS MISSING / WRONG
+                    required: true,
+                    enum: ["starters", "maincourse", "beverages", "desserts"],
+                }
+            }
+        ],
         // 🧾 Booking Info
         bookingId: {
             type: String,

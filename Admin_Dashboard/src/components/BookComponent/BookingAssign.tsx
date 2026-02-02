@@ -1,9 +1,9 @@
 // src/components/BookingAssign.jsx
 import { Button, Group, Stepper, Modal, Text } from '@mantine/core';
-import { 
-  IconCircleCheck, 
-  IconUserCheck, 
-  IconTruck, 
+import {
+  IconCircleCheck,
+  IconUserCheck,
+  IconTruck,
   IconToolsKitchen2,
   IconClipboardList,
   IconEdit
@@ -17,8 +17,8 @@ import toast from 'react-hot-toast';
 import { useDataStore } from '../../store/useDataStore';
 import { useBookingStore } from '../../store/useBookingStore';
 
-const BookingAssign = ({ onCloseDrawer,eventData }) => {
-  const {confirmBooking} = useBookingStore()
+const BookingAssign = ({ onCloseDrawer, eventData }) => {
+  const { confirmBooking } = useBookingStore()
   const [active, setActive] = useState(0);
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [stepToEdit, setStepToEdit] = useState(0);
@@ -31,38 +31,38 @@ const BookingAssign = ({ onCloseDrawer,eventData }) => {
   const nextStep = () => {
     // Step 1 validation: Staff
     if (active === 0) {
-      const allRolesEmpty = Object.values(staffSelection).every((arr) =>
-        !arr || (Array.isArray(arr) && arr.length === 0)
+      const requiredRoles = ["manager", "worker", "driver", "chef"];
+
+      const missingRoles = requiredRoles.filter(
+        (role) =>
+          !staffSelection[role] ||
+          !Array.isArray(staffSelection[role]) ||
+          staffSelection[role].length === 0
       );
-      if (allRolesEmpty) {
-        toast.error('Please assign at least one staff member before proceeding!');
+
+      if (missingRoles.length > 0) {
+        toast.error(
+          `Please assign at least one member from each group.}`
+        );
         return;
       }
     }
 
+
     // Step 2 validation: Goods and Cutlery
     if (active === 1) {
       const selectedGoods = (useDataStore.getState().selectedGoods || {}) as Record<string, Array<{ quantity: number }>>;
-      
+
       const hasItems = Object.values(selectedGoods).some(
         (categoryItems) => Array.isArray(categoryItems) && categoryItems.length > 0
       );
-      
-      const hasValidQuantities = Object.values(selectedGoods).every((categoryItems) => 
+
+      const hasValidQuantities = Object.values(selectedGoods).every((categoryItems) =>
         Array.isArray(categoryItems) && categoryItems.every(item => typeof item.quantity === 'number' && item.quantity > 0)
       );
 
       if (!hasItems || !hasValidQuantities) {
         toast.error('Please assign at least one item with valid quantity before proceeding!');
-        return;
-      }
-    }
-
-    // Step 3 validation: Vehicles
-    if (active === 2) {
-      const { selectedVehicles } = useDataStore.getState();
-      if (selectedVehicles.length === 0) {
-        toast.error('Please assign at least one vehicle before proceeding!');
         return;
       }
     }
@@ -98,7 +98,7 @@ const BookingAssign = ({ onCloseDrawer,eventData }) => {
   const handleFinish = async () => {
     // Get current state from store
     const currentState = useDataStore.getState();
-    
+
     // Prepare the data to log
     const bookingData = {
       staff: currentState.selectedStaff,
@@ -111,7 +111,7 @@ const BookingAssign = ({ onCloseDrawer,eventData }) => {
         totalQuantity: currentState.getTotalGoodsQuantity()
       },
       timestamp: new Date().toISOString()
-    };  
+    };
     const newBooking = {
       ...bookingData,
       eventData: eventData
@@ -119,13 +119,13 @@ const BookingAssign = ({ onCloseDrawer,eventData }) => {
 
     // Log to console
     console.log('🎯 FINAL BOOKING DATA:', newBooking);
-    
+
     // Show success message
-   await confirmBooking(newBooking);
-    
+    await confirmBooking(newBooking);
+
     // Reset the store state
     currentState.clearAllSelections();
-    
+
     // Close the drawer after a short delay
     setTimeout(() => {
       if (onCloseDrawer) {
@@ -184,14 +184,14 @@ const BookingAssign = ({ onCloseDrawer,eventData }) => {
         <Button variant="default" onClick={prevStep} disabled={active === 0}>
           Back
         </Button>
-        
+
         {active < 3 ? (
           <Button onClick={nextStep}>
             Next step
           </Button>
         ) : (
-          <Button 
-            color="green" 
+          <Button
+            color="green"
             onClick={handleFinish}
           >
             Confirm Booking
@@ -213,18 +213,18 @@ const BookingAssign = ({ onCloseDrawer,eventData }) => {
             Edit {getStepTitle(stepToEdit)}
           </Text>
           <Text size="sm" c="dimmed" mb="xl">
-            You will be taken back to the {getStepTitle(stepToEdit).toLowerCase()} step to make changes. 
+            You will be taken back to the {getStepTitle(stepToEdit).toLowerCase()} step to make changes.
             Your current selections will be preserved.
           </Text>
-          
+
           <Group justify="center">
-            <Button 
-              variant="light" 
+            <Button
+              variant="light"
               onClick={() => setEditModalOpened(false)}
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               color="blue"
               onClick={handleConfirmEdit}
             >

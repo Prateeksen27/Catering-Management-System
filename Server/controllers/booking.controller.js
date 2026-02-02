@@ -42,6 +42,10 @@ export const confirmBooking = async (req, res) => {
     if (existingBooking) {
       return res.status(400).json({ error: "A booking for this event already exists." });
     }
+    const pendingBookingRecord = await pendingBooking.findById(eventData._id);
+    if (!pendingBookingRecord) {
+      return res.status(404).json({ error: "Pending booking not found." });
+    }
 
     // ✅ Safely delete pending booking (after validation)
     await pendingBooking.findByIdAndDelete(eventData._id);

@@ -20,7 +20,7 @@ export const initialData = {
       beverages: [],
       desserts: [],
     },
-    specialRequests: "",
+    customMenuItems: [],
     estimatedPrice: 0,
   },
   payment:{

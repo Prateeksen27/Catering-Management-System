@@ -71,10 +71,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       path: '/menu'
     },
     {
+      key:"ASSIGN_WORK",
+      title: 'Assign Work',
+      icon: FileText,
+      path: '/assign-work'
+    }
+    ,
+    {
       key:"ASSIGNED_WORK",
       title: 'Assigned Work',
       icon: FileText,
-      path: '/assigned-word'
+      path: '/assigned-work'
     },
     {
       key:"ASSIGNED_EVENTS",
