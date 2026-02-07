@@ -4,8 +4,6 @@ import Employee from '../models/user.model.js';
 import cloudinary from '../middleware/cloudnary.js';
 
 export const register = async (req, res)=>{
-  
-    
     const { name,email,empType } = req.body;
     try {
         const existingUser = await Employee.findOne({ email });
@@ -26,7 +24,6 @@ export const login = async (req,res)=>{
     const { empID, password,empType } = req.body;
     try{
         const user = await Employee.find({empID,empType});
-        console.log(user);
         
         if (!user || user.length === 0) {
             return res.status(404).json({ message: `${empType} with Id ${empID} not found` });

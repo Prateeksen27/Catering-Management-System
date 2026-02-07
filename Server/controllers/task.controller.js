@@ -1,108 +1,119 @@
-import Task from "../models/task.model.js";
+import Task from "../models/task.model.js"
 
+/**
+ * =========================
+ * CREATE TASK
+ * Admin / Manager only
+ * =========================
+ */
 export const createTask = async (req, res) => {
   try {
-    const { title, description, priority, deadline, assignedTo } = req.body;
-
-    if (!title || !deadline || !assignedTo?.length) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    if (new Date(deadline) < new Date()) {
-      return res.status(400).json({ message: "Deadline cannot be in the past" });
-    }
+    const { title, description, priority, dueDate, assignedTo,assignedBy } = req.body;
 
     const task = await Task.create({
       title,
       description,
       priority,
-      deadline,
-      assignedTo
+      dueDate,
+      assignedTo,
+      assignedBy
     });
 
-    res.status(201).json({
-      message: "Task created successfully",
-      task
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export const getTasks = async (req, res) => {
-  try {
-    const { role, _id } = req.user || {};
-    let filter = { isActive: true };
-
-    if (["Driver","Worker","Chef"].includes(role)) {
-      filter.assignedTo = _id;
-    }
-
-    const tasks = await Task.find(filter)
-      .populate("assignedTo", "name email");
-
-    res.status(200).json(tasks);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(201).json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 /**
- * UPDATE TASK
- * WORKER → status only
- * ADMIN / MANAGER → full update
+ * =========================
+ * GET ALL TASKS
+ * Admin / Manager → all
+ * Employee → only assigned
+ * =========================
  */
-export const updateTask = async (req, res) => {
+export const getTasks = async (req, res) => {
   try {
-    const { role } = req.user || {};
-    const task = await Task.findById(req.params.id);
+    let filter = { isActive: true };
+
+    if (req.user.role === "Employee") {
+      filter.assignedTo = req.user._id;
+    }
+
+    const tasks = await Task.find(filter)
+      .populate("assignedBy", "name email")
+      .populate("assignedTo", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * =========================
+ * GET TASK BY ID
+ * =========================
+ */
+export const getTaskById = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id)
+      .populate("assignedBy", "name email")
+      .populate("assignedTo", "name email");
 
     if (!task || !task.isActive) {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    if (role === "WORKER") {
-      // Worker can ONLY update status
-      const { status } = req.body;
-      if (!status) {
-        return res.status(400).json({ message: "Status required" });
-      }
-      task.status = status;
-    } else {
-      // Admin / Manager
-      const { title, description, priority, deadline, assignedTo, status } = req.body;
-
-      if (title) task.title = title;
-      if (description) task.description = description;
-      if (priority) task.priority = priority;
-      if (deadline) task.deadline = deadline;
-      if (assignedTo) task.assignedTo = assignedTo;
-      if (status) task.status = status;
+    // Employee can view only own task
+    if (
+      req.user.role === "Employee" &&
+      !task.assignedTo.equals(req.user._id)
+    ) {
+      return res.status(403).json({ message: "Access denied" });
     }
 
-    await task.save();
-    res.status(200).json({
-      message: "Task updated successfully",
-      task
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 /**
- * DELETE TASK (Soft delete)
- * ADMIN / MANAGER only
+ * =========================
+ * UPDATE TASK (FULL UPDATE)
+ * Admin / Manager only
+ * =========================
+ */
+export const updateTask = async (req, res) => {
+  try {
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * =========================
+ * DELETE TASK (SOFT DELETE)
+ * Admin / Manager only
+ * =========================
  */
 export const deleteTask = async (req, res) => {
   try {
-    const { role } = req.user || {};
-
-    if (!["ADMIN", "MANAGER"].includes(role)) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
     const task = await Task.findById(req.params.id);
+
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
@@ -110,8 +121,58 @@ export const deleteTask = async (req, res) => {
     task.isActive = false;
     await task.save();
 
-    res.status(200).json({ message: "Task deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json({ message: "Task deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * =========================
+ * UPDATE TASK STATUS
+ * Employee (restricted)
+ * Admin / Manager (allowed)
+ * =========================
+ */
+export const updateTaskStatus = async (req, res) => {
+  try {
+    const { status, comment } = req.body;
+
+    const task = await Task.findById(req.params.id);
+
+    if (!task || !task.isActive) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Employee can update ONLY assigned task
+    if (
+      req.user.role === "Employee" &&
+      !task.assignedTo.equals(req.user._id)
+    ) {
+      return res.status(403).json({ message: "Not allowed" });
+    }
+
+    // Completion rule
+    if (status === "Completed") {
+      if (!comment || comment.trim() === "") {
+        return res.status(400).json({
+          message: "Comment is required to complete the task"
+        });
+      }
+
+      task.comments.push({
+        commenter: req.user._id,
+        comment
+      });
+
+      task.completedAt = new Date();
+    }
+
+    task.status = status;
+    await task.save();
+
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

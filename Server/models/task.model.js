@@ -1,42 +1,63 @@
 import mongoose from "mongoose";
-const taskSchema = new mongoose.Schema({
-    title:{
+const TaskSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    trim: true
+  },
+  assignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Employee',
+    required: true
+  },
+  assignedTo: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Employee',
+    required: true
+  }],
+  priority: {
+    type: String,
+    enum: ['Low', 'Medium', 'High'],
+    default: 'Medium'
+  },
+  status: {
+    type: String,
+    enum: ['Pending', 'In Progress', 'Completed', 'Cancelled'],
+    default: 'Pending'
+  },
+  comments: [
+    {
+      commenter: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Employee'
+      },
+      comment: {
         type: String,
-        required: true,
         trim: true
-    },
-    description:{
-        type: String,
-        trim: true
-    },
-    priority:{
-        type: String,
-        enum: ['Low', 'Medium', 'High'],
-        default: 'Medium'
-    },
-    deadline:{
+      },
+      commentedAt: {
         type: Date,
-        required: true
-    },
-    status:{
-        type: String,
-        enum: ['Pending', 'In Progress', 'Completed'],
-        default: 'Pending'
-    },
-    assignedTo:[
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
-        }
-    ],
-    isActive:{
-        type: Boolean,
-        default: true
+        default: Date.now
+      }
     }
-},{
-    timestamps: true
-})
+  ],
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  eventRef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+    default: null
+  },
+  dueDate: {
+    type: Date,
+    required: true
+  }
+}, { timestamps: true });
 
-const Task = mongoose.model('Task', taskSchema)
-export default Task
+export default mongoose.model("Task", TaskSchema);
