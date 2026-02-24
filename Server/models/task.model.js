@@ -50,7 +50,7 @@ const TaskSchema = new mongoose.Schema({
   },
   eventRef: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Event',
+    ref: 'Booked',
     default: null
   },
   dueDate: {
@@ -58,5 +58,12 @@ const TaskSchema = new mongoose.Schema({
     required: true
   }
 }, { timestamps: true });
+
+// Indexes for performance
+TaskSchema.index({ assignedTo: 1, isActive: 1 });
+TaskSchema.index({ eventRef: 1, isActive: 1 });
+TaskSchema.index({ status: 1 });
+TaskSchema.index({ dueDate: 1 });
+TaskSchema.index({ assignedBy: 1 });
 
 export default mongoose.model("Task", TaskSchema);

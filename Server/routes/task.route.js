@@ -5,20 +5,39 @@ import {
     getTaskById,
     updateTask,
     deleteTask,
-    updateTaskStatus
+    updateTaskStatus,
+    getEventsForTaskCreation,
+    addComment
 } from "../controllers/task.controller.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
-router.get("/",getTasks);
 
-router.get("/:id",getTaskById);
+// Apply verifyToken middleware to all task routes
+router.use(verifyToken);
 
-router.post("/",createTask);
+// Get events available for task creation (based on role)
+router.get("/events", getEventsForTaskCreation);
 
-router.put("/:id",updateTask);
+// Get all tasks (filtered by role)
+router.get("/", getTasks);
 
-router.delete("/:id",deleteTask);
+// Get task by ID
+router.get("/:id", getTaskById);
 
-router.patch("/:id/status",updateTaskStatus);
+// Create new task (Admin/Manager only)
+router.post("/", createTask);
+
+// Update task (Admin/Manager only)
+router.put("/:id", updateTask);
+
+// Delete task (soft delete - Admin/Manager only)
+router.delete("/:id", deleteTask);
+
+// Update task status
+router.patch("/:id/status", updateTaskStatus);
+
+// Add comment to task
+router.post("/:id/comments", addComment);
 
 export default router;
