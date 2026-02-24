@@ -1,7 +1,6 @@
 import toast from "react-hot-toast";
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
-import { assignRef } from "@mantine/hooks";
 
 export const useEmployeeStore = create((set) => ({
     employees: [],
@@ -10,7 +9,7 @@ export const useEmployeeStore = create((set) => ({
     assignedEvents:[],
     createNewEmployee: async (data) => {
         try {
-            const responce = axiosInstance.post('/auth/register', data)
+            const responce = await axiosInstance.post('/auth/register', data)
             await toast.promise(
                 responce, {
                 loading: "Adding...please don't refresh",

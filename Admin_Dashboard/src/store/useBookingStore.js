@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 
@@ -31,17 +30,6 @@ export const useBookingStore = create((set, get) => ({
             console.log(error);
             toast.error("Error fetching pending bookings")
             set({ isLoading: false })
-        }
-    },
-    confirmBooking: async (data) => {
-        const loadingToast = toast.loading("Confirming booking...")
-        try {
-            const responce = await axiosInstance.post('/booking/confirmBooking', data);
-            toast.success("Booking confirmed", { id: loadingToast })
-        } catch (error) {
-            console.log(error);
-            toast.error("Error confirming booking", { id: loadingToast })
-
         }
     },
     fetchAllBookedEvents: async () => {

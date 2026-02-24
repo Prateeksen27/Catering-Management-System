@@ -28,8 +28,6 @@ const Dashboard: React.FC = () => {
           title="Pending Bookings"
           value={bookingLoading ? 'Loading...' : pendingBookings.length}
           icon={<Users className="h-6 w-6 text-primary" />}
-
-
         />
         <StatsCard
           title="Completed"

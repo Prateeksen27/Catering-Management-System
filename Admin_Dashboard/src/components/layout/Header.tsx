@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               <DropdownMenuLabel>
                 <div>
                   <p className="font-medium">{details.name}</p>
-                  <p className="text-xs text-muted-foregreen">{details.email}</p>
+                  <p className="text-xs text-muted-foreground">{details.email}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

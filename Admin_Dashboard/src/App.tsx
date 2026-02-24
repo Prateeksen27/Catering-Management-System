@@ -76,13 +76,13 @@ const App = () => {
 
             <Route path="/dashboard/worker" element={
               <ProtectedRoute allowedRoles={["WORKER"]}>
-                <DashboardLayout><DriverDashboard /></DashboardLayout>
+                <DashboardLayout><WorkerDashboard /></DashboardLayout>
               </ProtectedRoute>
             } />
 
             <Route path="/dashboard/driver" element={
               <ProtectedRoute allowedRoles={["DRIVER"]}>
-                <DashboardLayout><WorkerDashboard /></DashboardLayout>
+                <DashboardLayout><DriverDashboard /></DashboardLayout>
               </ProtectedRoute>
             } />
 
