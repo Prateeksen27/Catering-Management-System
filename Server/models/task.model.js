@@ -14,11 +14,11 @@ const TaskSchema = new mongoose.Schema({
     ref: 'Employee',
     required: true
   },
-  assignedTo: [{
+  assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employee',
     required: true
-  }],
+  },
   priority: {
     type: String,
     enum: ['Low', 'Medium', 'High'],
@@ -29,7 +29,7 @@ const TaskSchema = new mongoose.Schema({
     enum: ['Pending', 'In Progress', 'Completed', 'Cancelled'],
     default: 'Pending'
   },
-  comments: [
+  comments:
     {
       commenter: {
         type: mongoose.Schema.Types.ObjectId,
@@ -43,8 +43,7 @@ const TaskSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
       }
-    }
-  ],
+    },
   isActive: {
     type: Boolean,
     default: true

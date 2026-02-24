@@ -181,7 +181,7 @@ export default function BookingWizard() {
             <PaymentForm  data={data.payment} extra={data} errors={errors} onChange={(k,v)=>update(["payment",k],v)} />
           )}
           {step === 4 && (
-            <Review data={data} errors={errors} onToggleTerms={(v) => update(["termsAccepted"], v)} />
+            <Review data={data}  errors={errors} onToggleTerms={(v) => update(["termsAccepted"], v)} />
           )}
 
           {/* Actions */}

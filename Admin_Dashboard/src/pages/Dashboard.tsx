@@ -8,6 +8,9 @@ import StatisticsSection from '@/components/dashboard/StatisticsSection';
 import { useBookingStore } from '../store/useBookingStore';
 import { useEmployeeStore } from '../store/useEmployeeStore';
 
+
+//Hello this commit is from feature beanch
+
 const Dashboard: React.FC = () => {
   const { pendingBookings, fetchAllPendingBookings, isLoading: bookingLoading ,fetchAllCompletedBookings , completedBookings } = useBookingStore();
   const { employees, fetchAllEmployees, isLoading: employeeLoading } = useEmployeeStore();
@@ -25,6 +28,8 @@ const Dashboard: React.FC = () => {
           title="Pending Bookings"
           value={bookingLoading ? 'Loading...' : pendingBookings.length}
           icon={<Users className="h-6 w-6 text-primary" />}
+
+
         />
         <StatsCard
           title="Completed"
