@@ -9,7 +9,6 @@ import BookingCompleted from "./pages/bookings/BookingCompleted";
 import Calendar from "./pages/Calendar";
 import Employees from "./pages/Employees";
 import Menu from "./pages/Menu";
-import AssignedWord from "./pages/AssignedWord";
 import Store from "./pages/Store";
 import Tables from "./pages/Tables";
 import NotFound from "./pages/NotFound";
@@ -30,6 +29,8 @@ import ManagerDashboard from "./pages/ManagerDashboard";
 import ChefDashboard from "./pages/ChefDashboard";
 import DriverDashboard from "./pages/DriverDashboard";
 import WorkerDashboard from "./pages/WorkerDashboard";
+import AssignWork from "./pages/AssignWork";
+import AssignedWork from "./pages/AssignedWork";
 
 const queryClient = new QueryClient();
 
@@ -133,14 +134,20 @@ const App = () => {
             <Route path="/assign-work" element={
               <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
                 <DashboardLayout>
-                  <AssignedWord />
+                  <AssignWork />
                 </DashboardLayout>
               </ProtectedRoute>
             } />
 
+            <Route path="/my-tasks" element={
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+                <DashboardLayout><AssignedWork /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
             <Route path="/assigned-work" element={
-              <ProtectedRoute allowedRoles={["CHEF", "WORKER", "DRIVER"]}>
-                <DashboardLayout><AssignedWord /></DashboardLayout>
+              <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CHEF", "WORKER", "DRIVER"]}>
+                <DashboardLayout><AssignedWork /></DashboardLayout>
               </ProtectedRoute>
             } />
 

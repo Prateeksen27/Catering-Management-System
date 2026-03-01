@@ -7,6 +7,7 @@ export const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
+      token: null,
       isAuthenticated: false,
       isLoading: false,
 
@@ -19,7 +20,12 @@ export const useAuthStore = create(
             password,
             empType,
           });
-          set({ user: response.data.user.user, isAuthenticated: true });
+          // Store both user and token
+          set({ 
+            user: response.data.user.user, 
+            token: response.data.token,
+            isAuthenticated: true 
+          });
           toast.success(`Welcome to CMS, ${response.data.user.user.name}!`);
           set({ isLoading: false })
         } catch (error) {
@@ -70,7 +76,7 @@ export const useAuthStore = create(
       },
       logout: () => {
         try {
-          set({ user: null, isAuthenticated: false });
+          set({ user: null, token: null, isAuthenticated: false });
           toast.success("Logout successful");
         } catch (error) {
           console.error(error);
