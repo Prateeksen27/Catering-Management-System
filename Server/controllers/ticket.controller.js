@@ -20,9 +20,9 @@ export const createTicket = async (req, res) => {
 
     // Validate required fields
     if (!title || !description || !assignedTo || !dueDate) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Title, description, assignedTo, and dueDate are required' 
+      return res.status(400).json({
+        success: false,
+        message: 'Title, description, assignedTo, and dueDate are required'
       });
     }
 
@@ -32,11 +32,22 @@ export const createTicket = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Employee not found' });
     }
 
+    // Validate dueDate is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDueDate = new Date(dueDate);
+    if (selectedDueDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: 'Due date cannot be in the past'
+      });
+    }
+
     // Check if employee is on leave
     if (employee.status === 'On-leave') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Cannot assign ticket to employee on leave' 
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot assign ticket to employee on leave'
       });
     }
 
@@ -94,7 +105,7 @@ export const createTicket = async (req, res) => {
 export const getAllTickets = async (req, res) => {
   try {
     const { status, priority, assignedTo, relatedBooking } = req.query;
-    
+
     const filter = {};
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
@@ -170,18 +181,18 @@ export const updateTicketStatus = async (req, res) => {
 
     // Check if ticket is closed
     if (ticket.status === 'Closed') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Cannot update closed ticket' 
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot update closed ticket'
       });
     }
 
     // Validate status transition
     const validTransitions = VALID_TRANSITIONS[ticket.status];
     if (!validTransitions || !validTransitions.includes(newStatus)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `Invalid status transition from ${ticket.status} to ${newStatus}` 
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status transition from ${ticket.status} to ${newStatus}`
       });
     }
 
@@ -216,9 +227,9 @@ export const reassignTicket = async (req, res) => {
 
     // Check if user is Admin or Manager
     if (userRole !== 'Admin' && userRole !== 'Manager') {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Only Admin and Manager can reassign tickets' 
+      return res.status(403).json({
+        success: false,
+        message: 'Only Admin and Manager can reassign tickets'
       });
     }
 
@@ -229,9 +240,9 @@ export const reassignTicket = async (req, res) => {
 
     // Check if ticket is closed
     if (ticket.status === 'Closed') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Cannot reassign closed ticket' 
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot reassign closed ticket'
       });
     }
 
@@ -243,9 +254,9 @@ export const reassignTicket = async (req, res) => {
 
     // Check if employee is on leave
     if (newEmployee.status === 'On-leave') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Cannot assign ticket to employee on leave' 
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot assign ticket to employee on leave'
       });
     }
 
@@ -279,9 +290,9 @@ export const closeTicket = async (req, res) => {
 
     // Check if user is Admin or Manager
     if (userRole !== 'Admin' && userRole !== 'Manager') {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Only Admin and Manager can close tickets' 
+      return res.status(403).json({
+        success: false,
+        message: 'Only Admin and Manager can close tickets'
       });
     }
 
@@ -292,9 +303,9 @@ export const closeTicket = async (req, res) => {
 
     // Can only close completed tickets
     if (ticket.status !== 'Completed') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Only completed tickets can be closed' 
+      return res.status(400).json({
+        success: false,
+        message: 'Only completed tickets can be closed'
       });
     }
 
@@ -335,9 +346,9 @@ export const addComment = async (req, res) => {
 
     // Check if ticket is closed
     if (ticket.status === 'Closed') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Cannot add comment to closed ticket' 
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot add comment to closed ticket'
       });
     }
 
@@ -368,9 +379,9 @@ export const addAttachment = async (req, res) => {
     const userId = req.user.id;
 
     if (!fileName || !fileUrl) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'File name and URL are required' 
+      return res.status(400).json({
+        success: false,
+        message: 'File name and URL are required'
       });
     }
 
@@ -381,9 +392,9 @@ export const addAttachment = async (req, res) => {
 
     // Check if ticket is closed
     if (ticket.status === 'Closed') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Cannot add attachment to closed ticket' 
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot add attachment to closed ticket'
       });
     }
 
@@ -443,9 +454,9 @@ export const deleteTicket = async (req, res) => {
 
     // Only Admin can delete tickets
     if (userRole !== 'Admin') {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Only Admin can delete tickets' 
+      return res.status(403).json({
+        success: false,
+        message: 'Only Admin can delete tickets'
       });
     }
 
@@ -494,8 +505,8 @@ export const getTicketStats = async (req, res) => {
       },
     ]);
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       statusStats: stats,
       priorityStats,
     });

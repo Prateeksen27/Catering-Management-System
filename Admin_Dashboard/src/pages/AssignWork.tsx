@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Modal } from '@mantine/core';
+import { Modal, NativeSelect } from '@mantine/core';
 import { useTicketStore } from '../store/useTicketStore';
 import { useEmployeeStore } from '../store/useEmployeeStore';
 import { useBookingStore } from '../store/useBookingStore';
@@ -126,7 +126,8 @@ const AssignWork: React.FC = () => {
     try {
       await createTicket({
         ...formData,
-        relatedBooking: formData.relatedBooking || null,
+        assignedTo: formData.assignedTo === 'none' ? '' : formData.assignedTo,
+        relatedBooking: formData.relatedBooking === 'none' ? null : formData.relatedBooking,
       });
       setCreateModalOpened(false);
       setFormData({
@@ -327,25 +328,18 @@ const AssignWork: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium">Priority</label>
-              <Select
+              <NativeSelect
+                mt="xs"
                 value={formData.priority}
-                onValueChange={(value) => setFormData({ ...formData, priority: value })}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(e) => setFormData({ ...formData, priority: e.currentTarget.value })}
+                data={['Low', 'Medium', 'High']}
+              />
             </div>
             <div>
               <label className="text-sm font-medium">Due Date *</label>
               <Input
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 value={formData.dueDate}
                 onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
                 className="mt-1"
@@ -354,43 +348,50 @@ const AssignWork: React.FC = () => {
           </div>
           <div>
             <label className="text-sm font-medium">Assign To *</label>
-            <Select
+            <NativeSelect
+              mt="xs"
               value={formData.assignedTo}
-              onValueChange={(value) => setFormData({ ...formData, assignedTo: value })}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select employee" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Select Employee</SelectItem>
-                {employees
-                  .filter((emp) => emp.status !== 'On-leave')
-                  .map((emp) => (
-                    <SelectItem key={emp._id} value={String(emp._id)}>
-                      {emp.name} ({emp.empType})
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+              onChange={(e) => setFormData({ ...formData, assignedTo: e.currentTarget.value })}
+              data={[
+                { value: 'none', label: 'Select Employee' },
+                ...(Array.isArray(employees)
+                  ? employees
+                    .filter((emp: any) => {
+                      if (emp.status === 'On-leave') return false;
+
+                      // Manager restrictions:
+                      if (user?.empType === ROLES.Manager) {
+                        // Manager cannot assign tasks to Admin or other Managers
+                        if (emp.empType === ROLES.Admin || emp.empType === ROLES.Manager) return false;
+                      }
+
+                      if (emp._id === user?._id) return false;
+                      return true;
+                    })
+                    .map((emp: any) => ({
+                      value: String(emp._id),
+                      label: `${emp.name} (${emp.empType})`,
+                    }))
+                  : []),
+              ]}
+            />
           </div>
           <div>
             <label className="text-sm font-medium">Related Event (Optional)</label>
-            <Select
+            <NativeSelect
+              mt="xs"
               value={formData.relatedBooking}
-              onValueChange={(value) => setFormData({ ...formData, relatedBooking: value === 'none' ? '' : value })}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select event" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                {booked.map((booking) => (
-                  <SelectItem key={booking._id} value={String(booking._id)}>
-                    {booking.bookingId} - {booking.eventName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(e) => setFormData({ ...formData, relatedBooking: e.currentTarget.value })}
+              data={[
+                { value: 'none', label: 'None' },
+                ...(Array.isArray(booked)
+                  ? booked.map((booking: any) => ({
+                    value: String(booking._id),
+                    label: `${booking.bookingId} - ${booking.eventName}`,
+                  }))
+                  : []),
+              ]}
+            />
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => setCreateModalOpened(false)}>
@@ -402,6 +403,7 @@ const AssignWork: React.FC = () => {
                 !formData.title ||
                 !formData.description ||
                 !formData.assignedTo ||
+                formData.assignedTo === 'none' ||
                 !formData.dueDate ||
                 isLoading
               }

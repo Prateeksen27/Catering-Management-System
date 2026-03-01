@@ -82,16 +82,16 @@ const getAvailableTransitions = (currentStatus: string) => {
 
 const AssignedWork: React.FC = () => {
   const { user } = useAuthStore();
-  const { 
-    myTickets, 
-    myTaskCounts, 
-    fetchMyTasks, 
-    updateTicketStatus, 
-    addComment, 
+  const {
+    myTickets,
+    myTaskCounts,
+    fetchMyTasks,
+    updateTicketStatus,
+    addComment,
     selectedTicket,
     fetchTicketById,
     clearSelectedTicket,
-    isLoading 
+    isLoading
   } = useTicketStore();
 
   const [viewModalOpened, setViewModalOpened] = useState(false);
@@ -99,29 +99,11 @@ const AssignedWork: React.FC = () => {
   const [newComment, setNewComment] = useState('');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Check if user is Admin - Admin should not access My Tasks page
-  const isAdmin = user?.empType === ROLES.Admin;
-
   useEffect(() => {
-    if (user?._id && !isAdmin) {
+    if (user?._id) {
       fetchMyTasks();
     }
-  }, [user?._id, isAdmin]);
-
-  // Redirect or show access denied if Admin
-  if (isAdmin) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              Admins do not have access to this page. Please use the Assign Work page to manage tickets.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  }, [user?._id]);
 
   // Filter tickets
   const filteredTickets = myTickets.filter((ticket) => {
@@ -375,23 +357,30 @@ const AssignedWork: React.FC = () => {
               <p className="mt-1">{(selectedTicket || selectedTicketLocal)?.createdBy?.name}</p>
             </div>
 
-            {/* Status Update (if not locked) */}
+            {/* Response Section */}
             {!isTicketLocked && availableTransitions.length > 0 && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Update Status</label>
-                <div className="flex gap-2 mt-1">
-                  <Select onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Select new status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableTransitions.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="border-t pt-4">
+                <label className="text-sm font-medium text-muted-foreground block mb-3">Your Response</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableTransitions.map((status) => (
+                    <Button
+                      key={status}
+                      onClick={() => handleStatusChange(status)}
+                      className={
+                        status === 'In Progress' ? 'bg-orange-500 hover:bg-orange-600' :
+                          status === 'Review' ? 'bg-purple-500 hover:bg-purple-600' :
+                            status === 'Completed' ? 'bg-green-600 hover:bg-green-700' :
+                              'bg-gray-500'
+                      }
+                    >
+                      {status === 'In Progress' ? <PlayCircle className="w-4 h-4 mr-2" /> :
+                        status === 'Review' ? <Eye className="w-4 h-4 mr-2" /> :
+                          status === 'Completed' ? <CheckCircle className="w-4 h-4 mr-2" /> : null}
+                      {status === 'In Progress' ? 'Start Working' :
+                        status === 'Review' ? 'Submit for Review' :
+                          status === 'Completed' ? 'Mark Completed' : status}
+                    </Button>
+                  ))}
                 </div>
               </div>
             )}
@@ -408,8 +397,8 @@ const AssignedWork: React.FC = () => {
                     className="flex-1"
                     rows={2}
                   />
-                  <Button 
-                    onClick={handleAddComment} 
+                  <Button
+                    onClick={handleAddComment}
                     disabled={!newComment.trim() || isLoading}
                     className="self-end"
                   >
@@ -446,9 +435,9 @@ const AssignedWork: React.FC = () => {
                   {(selectedTicket || selectedTicketLocal)?.attachments?.map((attachment: any, index: number) => (
                     <div key={index} className="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded">
                       <Paperclip className="w-4 h-4" />
-                      <a 
-                        href={attachment.fileUrl} 
-                        target="_blank" 
+                      <a
+                        href={attachment.fileUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline"
                       >
