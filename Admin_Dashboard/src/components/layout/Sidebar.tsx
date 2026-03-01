@@ -13,7 +13,8 @@ import {
   CheckCircle,
   Clock,
   X,
-  Car
+  Car,
+  ListTodo
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -75,13 +76,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       title: 'Assign Work',
       icon: FileText,
       path: '/assign-work'
-    }
-    ,
+    },
     {
       key:"ASSIGNED_WORK",
       title: 'Assigned Work',
       icon: FileText,
       path: '/assigned-work'
+    },
+    {
+      key:"MY_TASKS",
+      title: 'My Tasks',
+      icon: ListTodo,
+      path: '/my-tasks'
     },
     {
       key:"ASSIGNED_EVENTS",

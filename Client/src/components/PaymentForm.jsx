@@ -4,6 +4,7 @@ import { Image } from '@mantine/core';
 import { paymentMethods } from '../assets/constants';
 import { TextInput, Select, NumberInput, Alert } from '@mantine/core';
 import { IndianRupeeIcon, AlertCircle } from 'lucide-react';
+import paymentImage from '../assets/payment.jpeg'
 
 const PaymentForm = ({ data, extra, errors, onChange }) => {
     const [paymentError, setPaymentError] = useState('');
@@ -170,7 +171,7 @@ const PaymentForm = ({ data, extra, errors, onChange }) => {
                         h={200}
                         w="auto"
                         fit="contain"
-                        src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/images/bg-9.png"
+                        src={paymentImage}
                         alt="Payment illustration"
                     />
                     <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">

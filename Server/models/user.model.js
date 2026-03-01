@@ -61,7 +61,7 @@ const EmployeeSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Active", "On-leave","Assigned","Inactive"],
+      enum: ["Active", "On-leave","Assigned"],
       default: "Active",
     },
     password: {
