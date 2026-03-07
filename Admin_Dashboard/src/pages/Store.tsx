@@ -114,7 +114,9 @@ const Store: React.FC = () => {
   };
 
   const handleCreate = async () => {
-    if (!data.name || !data.type || !data.unit_cost || !data.supplierName || !data.min_stock || !data.category) {
+    // Check for empty strings only (0 is a valid value for cost/stock)
+    if (!data.name || !data.type || data.unit_cost === null || data.unit_cost === undefined || 
+        !data.supplierName || data.min_stock === null || data.min_stock === undefined || !data.category) {
       return toast.error('Please fill all the fields!');
     }
     try {

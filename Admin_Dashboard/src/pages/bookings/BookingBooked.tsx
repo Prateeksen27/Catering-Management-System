@@ -84,14 +84,14 @@ const BookingBooked: React.FC = () => {
       </Modal>
 
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Confirmed Bookings</h1>
+        <h1 className="text-3xl font-bold text-foreground">Upcoming Events</h1>
         <p className="text-muted-foreground">
           Manage your confirmed event bookings
         </p>
       </div>
 
       <div className="grid gap-6">
-        {booked.map((booking) => {
+        {(booked || []).map((booking) => {
           const menuItems = getMenuItems(booking.menu);
           return (
             <Card

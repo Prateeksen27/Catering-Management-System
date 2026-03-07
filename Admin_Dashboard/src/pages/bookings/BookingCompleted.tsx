@@ -37,7 +37,7 @@ const BookingCompleted: React.FC = () => {
       </div>
 
       <div className="grid gap-6">
-        {completedBookings.map((booking) => (
+        {completedBookings?.map((booking) => (
           <Card key={booking._id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">
