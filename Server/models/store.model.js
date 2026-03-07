@@ -87,4 +87,10 @@ storeItemSchema.methods.addStock = function (addedStock) {
   return this.save();
 };
 
+// Add indexes before creating model
+storeItemSchema.index({ name: 1 });
+storeItemSchema.index({ type: 1 });
+storeItemSchema.index({ category: 1 });
+storeItemSchema.index({ status: 1 });
+
 export const StoreItem = mongoose.model("StoreItem", storeItemSchema);

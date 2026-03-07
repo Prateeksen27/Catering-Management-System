@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { generateEmployeeId } from "../utils/idGenerator.js";
 
 const EmployeeSchema = new mongoose.Schema(
   {
@@ -66,6 +67,7 @@ const EmployeeSchema = new mongoose.Schema(
     },
     password: {
       type: String,
+      minlength: 6, // Enforce minimum password length
     },
     profilePic:{
       type:String,
@@ -75,31 +77,26 @@ const EmployeeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Add index for frequently queried fields (only non-unique indexes)
+EmployeeSchema.index({ empType: 1 });
+EmployeeSchema.index({ status: 1 });
+
 EmployeeSchema.pre("save", async function (next) {
-
-if (!this.empID) {
-    const lastEmp = await this.constructor.findOne().sort({ createdAt: -1 }).exec();
-
-    let newNumber = 1;
-    if (lastEmp && lastEmp.empID) {
-      const lastNumber = parseInt(lastEmp.empID.replace("EMP", ""), 10);
-      newNumber = lastNumber + 1;
-    }
-
-    this.empID = `EMP${String(newNumber).padStart(3, "0")}`;
+  if (!this.empID) {
+    this.empID = await generateEmployeeId();
   }
 
   if (!this.password) {
-    this.password = this.empID; // set default password
+    // Generate a secure random password instead of using empID
+    const randomPassword = Math.random().toString(36).slice(-8) + 'A1!';
+    this.password = randomPassword;
   }
 
-  // Hash password if it’s new or modified
+  // Hash password if it's new or modified
   if (this.isModified("password")) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
   }
-
-
 
   next();
 });

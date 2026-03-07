@@ -90,7 +90,7 @@ export const sendBookingRequest = async (req, res) => {
 
       // ⚙️ Defaults
       priority: "Medium",
-      status: "Pending",
+      status: "PENDING_REVIEW",
     });
 
    
