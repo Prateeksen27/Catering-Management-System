@@ -1,8 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle, Calendar, MapPin } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { CheckCircle, Calendar, MapPin, Search, RotateCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useBookingStore } from '../../store/useBookingStore';
 import { IconCurrencyRupee, IconUser } from '@tabler/icons-react';
 import { Modal } from '@mantine/core';
@@ -13,6 +21,14 @@ const BookingBooked: React.FC = () => {
   // ✅ States for Google Map Modal
   const [mapOpened, setMapOpened] = useState(false);
   const [mapLocation, setMapLocation] = useState('');
+
+  // ✅ Search and Filter States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('date-desc');
 
   // ✅ Fetch bookings on mount
   useEffect(() => {
@@ -60,6 +76,114 @@ const BookingBooked: React.FC = () => {
     ];
   };
 
+  // ✅ Get payment status based on amount paid
+  const getPaymentStatus = (booking: any): string => {
+    const total = booking.totalAmount || 0;
+    const deposited = booking.deposited || 0;
+    if (deposited === 0) return 'pending';
+    if (deposited >= total) return 'paid';
+    return 'partial';
+  };
+
+  // ✅ Reset all filters
+  const resetFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setPriorityFilter('all');
+    setPaymentFilter('all');
+    setDateFilter('all');
+    setSortBy('date-desc');
+  };
+
+  // ✅ Filter and sort bookings
+  const filteredBookings = useMemo(() => {
+    let result = [...(booked || [])];
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (booking) =>
+          booking.clientName?.toLowerCase().includes(query) ||
+          booking.eventName?.toLowerCase().includes(query) ||
+          booking.phone?.toLowerCase().includes(query) ||
+          booking.bookingId?.toLowerCase().includes(query)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(
+        (booking) => booking.bookingStatus?.toLowerCase() === statusFilter
+      );
+    }
+
+    // Priority filter
+    if (priorityFilter !== 'all') {
+      result = result.filter(
+        (booking) => booking.priority?.toLowerCase() === priorityFilter
+      );
+    }
+
+    // Payment filter
+    if (paymentFilter !== 'all') {
+      result = result.filter(
+        (booking) => getPaymentStatus(booking) === paymentFilter
+      );
+    }
+
+    // Date filter
+    if (dateFilter !== 'all') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      result = result.filter((booking) => {
+        const eventDate = new Date(booking.eventDate);
+        eventDate.setHours(0, 0, 0, 0);
+
+        switch (dateFilter) {
+          case 'today':
+            return eventDate.getTime() === today.getTime();
+          case 'week':
+            const weekEnd = new Date(today);
+            weekEnd.setDate(weekEnd.getDate() + 7);
+            return eventDate >= today && eventDate <= weekEnd;
+          case 'month':
+            const monthEnd = new Date(today);
+            monthEnd.setMonth(monthEnd.getMonth() + 1);
+            return eventDate >= today && eventDate <= monthEnd;
+          case 'past':
+            return eventDate < today;
+          case 'upcoming':
+          default:
+            return eventDate >= today;
+        }
+      });
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'date-asc':
+          return new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime();
+        case 'date-desc':
+          return new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime();
+        case 'amount-asc':
+          return (a.totalAmount || 0) - (b.totalAmount || 0);
+        case 'amount-desc':
+          return (b.totalAmount || 0) - (a.totalAmount || 0);
+        case 'guests-asc':
+          return (a.pax || 0) - (b.pax || 0);
+        case 'guests-desc':
+          return (b.pax || 0) - (a.pax || 0);
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [booked, searchQuery, statusFilter, priorityFilter, paymentFilter, dateFilter, sortBy]);
+
   return (
     <div className="space-y-6">
       {/* Google Map Modal */}
@@ -90,14 +214,121 @@ const BookingBooked: React.FC = () => {
         </p>
       </div>
 
+      {/* ✅ Search and Filter Section */}
+      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between bg-muted/30 p-4 rounded-lg">
+        {/* Search Bar */}
+        <div className="relative w-full lg:w-80">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by client, event, phone, ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Filters Row */}
+        <div className="flex flex-wrap gap-2 items-center">
+          {/* Date Filter */}
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Event Date" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Dates</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="past">Past Events</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="confirmed">Confirmed</SelectItem>
+              <SelectItem value="deposit-pending">Deposit Pending</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Priority Filter */}
+          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Priority</SelectItem>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Payment Filter */}
+          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Payment" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Payments</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="partial">Partial</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Sort */}
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Sort By" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date-desc">Newest First</SelectItem>
+              <SelectItem value="date-asc">Oldest First</SelectItem>
+              <SelectItem value="amount-desc">Highest Amount</SelectItem>
+              <SelectItem value="amount-asc">Lowest Amount</SelectItem>
+              <SelectItem value="guests-desc">Most Guests</SelectItem>
+              <SelectItem value="guests-asc">Least Guests</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Reset Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={resetFilters}
+            className="flex items-center gap-1"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset
+          </Button>
+        </div>
+      </div>
+
+      {/* Results Count */}
+      <p className="text-sm text-muted-foreground">
+        Showing {filteredBookings.length} of {booked?.length || 0} bookings
+      </p>
+
       <div className="grid gap-6">
-        {(booked || []).map((booking) => {
-          const menuItems = getMenuItems(booking.menu);
-          return (
-            <Card
-              key={booking._id}
-              className="hover:shadow-md transition-shadow"
-            >
+        {filteredBookings.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-lg">No bookings found</p>
+            <p className="text-sm text-muted-foreground">
+              Try adjusting your search or filter criteria
+            </p>
+          </div>
+        )}
+        {filteredBookings.map((booking) => (
+          <Card
+            key={booking._id}
+            className="hover:shadow-md transition-shadow"
+          >
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
@@ -175,13 +406,13 @@ const BookingBooked: React.FC = () => {
                   </p>
                 </div>
 
-                {menuItems.length > 0 && (
+                {getMenuItems(booking.menu).length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm text-muted-foreground mb-2">
                       Menu Included
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {menuItems.map((item, index) => (
+                      {getMenuItems(booking.menu).map((item, index) => (
                         <Badge key={index} variant="secondary">
                           {item}
                         </Badge>
@@ -200,8 +431,7 @@ const BookingBooked: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+          ))}
       </div>
     </div>
   );

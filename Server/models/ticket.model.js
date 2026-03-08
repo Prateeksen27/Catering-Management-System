@@ -27,7 +27,7 @@ const TicketSchema = new mongoose.Schema({
   },
   relatedBooking: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Booked',
+    ref: 'PendingBooking',
     default: null,
   },
   assignedTo: {

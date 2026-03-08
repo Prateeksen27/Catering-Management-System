@@ -185,7 +185,7 @@ export const useBookingStore = create((set, get) => ({
         const loadingToast = toast.loading("Fetching booked events...")
         try {
             const responce = await axiosInstance.get('/booking/getAllBookedEvents');
-            set({ booked: responce.data.responce })
+            set({ booked: responce.data.bookedEvents })
             console.log("Booked", get().booked);
             toast.success("Fetched booked events", { id: loadingToast })
         } catch (error) {
@@ -236,6 +236,47 @@ export const useBookingStore = create((set, get) => ({
         } catch (error) {
             console.error("Update failed:", error);
             toast.error("Failed to update", { id: loadingToast });
+        }
+    },
+
+    // Fetch bookings by status (for manager dashboard)
+    fetchBookingsByStatus: async (status) => {
+        set({ isLoading: true });
+        try {
+            const response = await axiosInstance.get(`/booking/by-status?status=${status}`);
+            set({ isLoading: false });
+            return response.data.bookings || [];
+        } catch (error) {
+            console.log(error);
+            toast.error(`Error fetching ${status} bookings`);
+            set({ isLoading: false });
+            return [];
+        }
+    },
+
+    // Update booking status
+    updateBookingStatus: async (id, status, notes) => {
+        const loadingToast = toast.loading(`Updating status to ${status}...`);
+        try {
+            const response = await axiosInstance.patch(`/booking/${id}/status`, { status, notes });
+            toast.success(`Status updated to ${status}`, { id: loadingToast });
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            toast.error(error.response?.data?.message || `Error updating status`, { id: loadingToast });
+            throw error;
+        }
+    },
+
+    // Fetch active events for ticket linking
+    fetchActiveEvents: async () => {
+        try {
+            const response = await axiosInstance.get('/booking/active-events');
+            return response.data.events || [];
+        } catch (error) {
+            console.log(error);
+            toast.error("Error fetching active events");
+            return [];
         }
     }
 }))

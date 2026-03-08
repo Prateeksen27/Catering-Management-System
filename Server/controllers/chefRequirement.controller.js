@@ -151,7 +151,7 @@ export const submitRequirement = async (req, res) => {
     await booking.save();
 
     // ============================================\n    // INVENTORY VALIDATION\n    // ============================================\n    const purchaseRequirements = [];
-
+    var purchaseRequirements = [];
     for (const ingredient of ingredients) {
       // Try to find in inventory (case-insensitive search)
       const inventoryItem = await Inventory.findOne({

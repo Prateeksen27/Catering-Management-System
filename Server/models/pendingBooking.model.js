@@ -92,7 +92,7 @@ const pendingBookingSchema = new mongoose.Schema(
                 category: {
                     type: String,
                     required: true,
-                    enum: ["starters", "maincourse", "beverages", "desserts"],
+                    enum: ["starters", "maincourse", "beverages", "desserts","appetizers"],
                 }
             }
         ],

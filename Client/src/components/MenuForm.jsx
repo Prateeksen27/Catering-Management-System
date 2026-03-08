@@ -6,7 +6,7 @@ import { clientAuthStore } from "../store/clientStore.js";
    Approx pricing per category
 ========================= */
 const CUSTOM_CATEGORY_PRICE = {
-  appetizers: 80,
+  starters: 80,
   mains: 180,
   desserts: 50,
   beverages: 50,

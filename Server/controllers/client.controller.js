@@ -34,6 +34,8 @@ export const sendQuery = async (req, res) => {
 export const sendBookingRequest = async (req, res) => {
   try {
     const data = req.body;
+    console.log("Receoved ",data);
+    
    
 
     // ✅ Basic validation

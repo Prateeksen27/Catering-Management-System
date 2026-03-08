@@ -281,6 +281,7 @@ const ChefDashboard: React.FC = () => {
               </Badge>
             ))}
 
+
             {selectedBooking?.menu?.maincourse?.map((item: string, i: number) => (
               <Badge key={`main-${i}`} variant="outline">
                 Main: {item}
@@ -296,6 +297,11 @@ const ChefDashboard: React.FC = () => {
             {selectedBooking?.menu?.beverages?.map((item: string, i: number) => (
               <Badge key={`beverage-${i}`} variant="outline">
                 Beverage: {item}
+              </Badge>
+            ))}
+            {selectedBooking?.customMenuItems?.map((customItem: any, index: number) => (
+              <Badge key={`custom-${index}`} variant="outline">
+                {String(customItem.name)}
               </Badge>
             ))}
 

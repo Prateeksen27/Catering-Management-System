@@ -1,19 +1,21 @@
 import express from 'express'
 import {
-getAllPendinBookings,
-getAllQueries,
-confirmBooking,
-getAllBookedEvents,
-getAllCompletedEvents,
-rejectBooking,
-approveBooking,
-getBookingById,
-assignStaffToBooking,
-assignGoodsToBooking,
-assignVehiclesToBooking,
-completePreparation,
-updateBookingStatus,
-getBookingProgress
+  getAllPendinBookings,
+  getAllQueries,
+  confirmBooking,
+  getAllBookedEvents,
+  getAllCompletedEvents,
+  rejectBooking,
+  approveBooking,
+  getBookingById,
+  assignStaffToBooking,
+  assignGoodsToBooking,
+  assignVehiclesToBooking,
+  completePreparation,
+  updateBookingStatus,
+  getBookingProgress,
+  getBookingsByStatus,
+  getActiveEvents
 } from '../controllers/booking.controller.js'
 
 import { verifyToken } from '../middleware/verifyToken.js'   // ✅ ADD THIS
@@ -32,6 +34,12 @@ router.get('/getPendingBookings', verifyToken, getAllPendinBookings)
 router.post('/confirmBooking', verifyToken, confirmBooking)
 router.get('/getAllBookedEvents', verifyToken, getAllBookedEvents)
 router.get('/getCompletedBookings', verifyToken, getAllCompletedEvents)
+
+// ====== GET BOOKINGS BY STATUS ======
+router.get('/by-status', verifyToken, getBookingsByStatus)
+
+// ====== GET ACTIVE EVENTS ======
+router.get('/active-events', verifyToken, getActiveEvents)
 
 // ====== POST ROUTES ======
 router.post('/reject', verifyToken, rejectBooking)

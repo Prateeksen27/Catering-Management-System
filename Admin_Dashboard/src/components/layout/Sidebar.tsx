@@ -48,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       hasSubmenu: true,
       submenu: [
         {key:"BOOKINGS_INQUIRE", title: 'Inquire', icon: Eye, path: '/bookings/inquire' },
-        { key:"BOOKINGS_BOOKED", title: 'Pending', icon: CheckCircle, path: '/bookings/booked' },
+        // { key:"BOOKINGS_BOOKED", title: 'Pending', icon: CheckCircle, path: '/bookings/booked' },
         { key:"BOOKINGS_PENDING", title: 'Booked', icon: Clock, path: '/bookings/pending' },
         { key:"BOOKINGS_COMPLETED", title: 'Completed', icon: CheckCircle, path: '/bookings/completed' },
       ]

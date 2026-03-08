@@ -561,7 +561,7 @@ export const completePreparation = async (req, res) => {
       assignedTo: booking.assignedStaff.manager,
       status: "Open",
       priority: "High",
-      bookingId: id,
+      relatedBooking: id,
       createdBy: req.user?.id || null,
       dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
       timeline: [{
@@ -721,6 +721,74 @@ export const updateBookingStatus = async (req, res) => {
   } catch (error) {
     console.error("Error updating booking status:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// @desc    Get bookings by status (for manager dashboard)
+// @route   GET /api/booking/by-status
+// @access  Admin, Manager
+export const getBookingsByStatus = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    if (!status) {
+      return res.status(400).json({ message: 'Status parameter is required' });
+    }
+
+    let bookings;
+    
+    if (status === 'COMPLETED') {
+      // For completed, search in Booked collection
+      bookings = await Booked.find({ bookingStatus: status }).sort({ eventDate: 1 });
+    } else {
+      // For other statuses, search in pendingBooking collection
+      bookings = await pendingBooking.find({ status }).sort({ createdAt: -1 });
+    }
+
+    res.status(200).json({
+      success: true,
+      bookings,
+      count: bookings.length
+    });
+  } catch (error) {
+    console.error('Error fetching bookings by status:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+// @desc    Get active events for ticket linking
+// @route   GET /api/booking/active-events
+// @access  Admin, Manager
+export const getActiveEvents = async (req, res) => {
+  try {
+    const activeStatuses = [
+      'PREPARATION_PENDING',
+      'REQUIREMENT_SUBMITTED', 
+      'READY_FOR_EVENT',
+      'IN_PROGRESS'
+    ];
+
+    const bookings = await pendingBooking.find({ status: { $in: activeStatuses } })
+      .select('_id eventDetails status')
+      .sort({ 'eventDetails.eventDate': 1 });
+
+    const activeEvents = bookings.map(booking => ({
+      _id: booking._id,
+      eventId: booking._id,
+      eventName: booking.eventDetails?.eventName || 'Unknown Event',
+      eventDate: booking.eventDetails?.eventDate,
+      venue: booking.eventDetails?.venue,
+      status: booking.status
+    }));
+
+    res.status(200).json({
+      success: true,
+      events: activeEvents,
+      count: activeEvents.length
+    });
+  } catch (error) {
+    console.error('Error fetching active events:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
