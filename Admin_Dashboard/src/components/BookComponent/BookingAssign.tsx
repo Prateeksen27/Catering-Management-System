@@ -18,52 +18,53 @@ import { useDataStore } from '../../store/useDataStore';
 import { useBookingStore } from '../../store/useBookingStore';
 
 const BookingAssign = ({ onCloseDrawer, eventData }) => {
-  const { confirmBooking } = useBookingStore()
+  const { approveBooking, confirmBooking, assignStaff, assignGoods, assignVehicles, completePreparation } = useBookingStore()
   const [active, setActive] = useState(0);
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [stepToEdit, setStepToEdit] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ✅ Step data states
-  const [staffSelection, setStaffSelection] = useState({});
+  const [staffSelection, setStaffSelection] = useState<{
+    manager?: string[];
+    worker?: string[];
+    chef?: string[];
+    driver?: string[];
+  }>({});
   const [goodsSelection, setGoodsSelection] = useState({});
 
   // ✅ Handle next step with validation
   const nextStep = () => {
-    // Step 1 validation: Staff
+    // Step 1 validation: Staff - Manager is required, Chef is required
     if (active === 0) {
-      const requiredRoles = ["manager", "worker", "driver", "chef"];
-
-      const missingRoles = requiredRoles.filter(
-        (role) =>
-          !staffSelection[role] ||
-          !Array.isArray(staffSelection[role]) ||
-          staffSelection[role].length === 0
-      );
-
-      if (missingRoles.length > 0) {
-        toast.error(
-          `Please assign at least one member from each group.}`
-        );
+      if (!staffSelection.manager || staffSelection.manager.length === 0) {
+        toast.error("Please assign at least one manager!");
+        return;
+      }
+      if (!staffSelection.chef || staffSelection.chef.length === 0) {
+        toast.error("Please assign at least one chef!");
         return;
       }
     }
 
-
-    // Step 2 validation: Goods and Cutlery
+    // Step 2 validation: Goods and Cutlery (optional but validate if provided)
     if (active === 1) {
-      const selectedGoods = (useDataStore.getState().selectedGoods || {}) as Record<string, Array<{ quantity: number }>>;
-
+      const currentState = useDataStore.getState();
+      const selectedGoods = currentState.selectedGoods || {};
+      
       const hasItems = Object.values(selectedGoods).some(
         (categoryItems) => Array.isArray(categoryItems) && categoryItems.length > 0
       );
 
-      const hasValidQuantities = Object.values(selectedGoods).every((categoryItems) =>
-        Array.isArray(categoryItems) && categoryItems.every(item => typeof item.quantity === 'number' && item.quantity > 0)
-      );
+      if (hasItems) {
+        const hasValidQuantities = Object.values(selectedGoods).every((categoryItems) =>
+          Array.isArray(categoryItems) && categoryItems.every(item => typeof item.quantity === 'number' && item.quantity > 0)
+        );
 
-      if (!hasItems || !hasValidQuantities) {
-        toast.error('Please assign at least one item with valid quantity before proceeding!');
-        return;
+        if (!hasValidQuantities) {
+          toast.error('Please ensure all selected items have valid quantities!');
+          return;
+        }
       }
     }
 
@@ -74,7 +75,7 @@ const BookingAssign = ({ onCloseDrawer, eventData }) => {
   const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
 
   // Handle edit action from review step
-  const handleEditStep = (stepIndex) => {
+  const handleEditStep = (stepIndex: number) => {
     setStepToEdit(stepIndex);
     setEditModalOpened(true);
   };
@@ -85,8 +86,8 @@ const BookingAssign = ({ onCloseDrawer, eventData }) => {
   };
 
   // Get step titles for the modal
-  const getStepTitle = (stepIndex) => {
-    const titles = {
+  const getStepTitle = (stepIndex: number) => {
+    const titles: Record<number, string> = {
       0: "Staff Assignment",
       1: "Goods & Cutlery",
       2: "Vehicle Assignment"
@@ -96,42 +97,61 @@ const BookingAssign = ({ onCloseDrawer, eventData }) => {
 
   // Handle finish button click
   const handleFinish = async () => {
-    // Get current state from store
-    const currentState = useDataStore.getState();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-    // Prepare the data to log
-    const bookingData = {
-      staff: currentState.selectedStaff,
-      goods: currentState.selectedGoods,
-      vehicles: currentState.selectedVehicles,
-      summary: {
-        totalStaff: currentState.getSelectedStaffCount(),
-        totalGoods: currentState.getSelectedGoodsCount(),
-        totalVehicles: currentState.getSelectedVehiclesCount(),
-        totalQuantity: currentState.getTotalGoodsQuantity()
-      },
-      timestamp: new Date().toISOString()
-    };
-    const newBooking = {
-      ...bookingData,
-      eventData: eventData
-    }
+    try {
+      // Get current state from store
+      const currentState = useDataStore.getState();
+      const bookingId = eventData._id;
 
-    // Log to console
-    console.log('🎯 FINAL BOOKING DATA:', newBooking);
+      // Step 0: Approve booking first (PENDING_REVIEW → CONFIRMED)
+      await approveBooking(bookingId);
 
-    // Show success message
-    await confirmBooking(newBooking);
+      // Step 1: Assign Staff
+      await assignStaff(bookingId, {
+        manager: staffSelection.manager,
+        workers: staffSelection.worker || [],
+        chefs: staffSelection.chef || [],
+        drivers: staffSelection.driver || []
+      });
 
-    // Reset the store state
-    currentState.clearAllSelections();
+      // Step 2: Assign Goods
+      const allGoods = [
+        ...(currentState.selectedGoods.equipment || []),
+        ...(currentState.selectedGoods.supplies || []),
+        ...(currentState.selectedGoods.furniture || [])
+      ];
+      
+      if (allGoods.length > 0) {
+        await assignGoods(bookingId, allGoods);
+      }
 
-    // Close the drawer after a short delay
-    setTimeout(() => {
+      // Step 3: Assign Vehicles
+      const vehicles = currentState.selectedVehicles || [];
+      if (vehicles.length > 0) {
+        await assignVehicles(bookingId, vehicles);
+      }
+
+      // Step 4: Complete Preparation (this creates manager task automatically)
+      await completePreparation(bookingId);
+
+      // Reset the store state
+      currentState.clearAllSelections();
+
+      toast.success("Booking prepared successfully! Manager task created.");
+
+      // Close the drawer
       if (onCloseDrawer) {
         onCloseDrawer();
       }
-    }, 1000);
+
+    } catch (error: any) {
+      console.error("Error completing booking:", error);
+      toast.error(error.response?.data?.message || "Error completing booking preparation");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -193,8 +213,9 @@ const BookingAssign = ({ onCloseDrawer, eventData }) => {
           <Button
             color="green"
             onClick={handleFinish}
+            loading={isSubmitting}
           >
-            Confirm Booking
+            Complete Preparation
           </Button>
         )}
       </Group>

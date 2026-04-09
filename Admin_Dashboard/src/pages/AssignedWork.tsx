@@ -105,6 +105,9 @@ const AssignedWork: React.FC = () => {
     }
   }, [user?._id]);
 
+  console.log(myTickets);
+  
+
   // Filter tickets
   const filteredTickets = myTickets.filter((ticket) => {
     if (searchQuery) {

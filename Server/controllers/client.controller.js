@@ -34,8 +34,7 @@ export const sendQuery = async (req, res) => {
 export const sendBookingRequest = async (req, res) => {
   try {
     const data = req.body;
-   
-
+    console.log("Receoved ",data);
     // ✅ Basic validation
     if (!data.personal || !data.event || !data.menu) {
       return res.status(400).json({
@@ -63,9 +62,10 @@ export const sendBookingRequest = async (req, res) => {
       },
 
       // 🍽️ Menu Details
+      // Note: Client sends 'mains' but database schema uses 'maincourse'
       menu: {
         starters: data.menu.selectedItems?.appetizers || [],
-        maincourse: data.menu.selectedItems?.maincourse || [],
+        maincourse: data.menu.selectedItems?.mains || [],
         beverages: data.menu.selectedItems?.beverages || [],
         desserts: data.menu.selectedItems?.desserts || []
 
@@ -75,7 +75,8 @@ export const sendBookingRequest = async (req, res) => {
       customMenuItems: (data.menu.customMenuItems || []).map(
           (item) => ({
             name: item.name,
-            category: item.category,
+            // Normalize category: map 'mains' to 'maincourse' for database consistency
+            category: item.category === 'mains' ? 'maincourse' : item.category,
           })
         ),
 
@@ -90,7 +91,7 @@ export const sendBookingRequest = async (req, res) => {
 
       // ⚙️ Defaults
       priority: "Medium",
-      status: "Pending",
+      status: "PENDING_REVIEW",
     });
 
    

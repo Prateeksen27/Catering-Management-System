@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { generateBookingId } from '../utils/idGenerator.js';
 
 const BookedSchema = new mongoose.Schema({
   eventName: {
@@ -50,13 +51,17 @@ const BookedSchema = new mongoose.Schema({
   },
   bookingStatus: {
     type: String,
-    enum: ["Confirmed", "In Progress", "Cancelled"],
-    default: "Confirmed",
+    enum: ["PENDING_REVIEW", "REJECTED", "CONFIRMED", "PREPARATION_PENDING", "REQUIREMENT_SUBMITTED", "READY_FOR_EVENT", "IN_PROGRESS", "COMPLETED"],
+    default: "CONFIRMED",
   },
   paymentStatus: {
     type: String,
     enum: ["Paid", "Partially Paid", "Unpaid"],
     default: "Unpaid",
+  },
+  balance: {
+    type: Number,
+    default: 0,
   },
   paymentDetails: {
     totalPaid: { type: Number, default: 0 },
@@ -68,51 +73,75 @@ const BookedSchema = new mongoose.Schema({
   assignedChefs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
   assignedVehicles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Vehicle" }],
 
-  // 🪑 Goods used in this booking
+  // 👨‍🍳 Structured Assigned Staff
+  assignedStaffDetails: {
+    manager: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
+    workers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
+    chefs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
+    drivers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
+  },
+
+  // 🧽 Goods used in this booking
   goodsUsed: [
     {
       itemId: { type: mongoose.Schema.Types.ObjectId, ref: "StoreItem" },
       itemName: { type: String, trim: true },
+      category: String,
       quantity: { type: Number, default: 0 },
     },
   ],
+
+  // 🔧 Requirement Status
+  requirementStatus: {
+    type: String,
+    enum: ["Pending", "Submitted"],
+    default: "Pending",
+  },
+
+  // 📝 Chef Grocery Requirements Reference
+  chefRequirementId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ChefRequirement",
+  },
 
   // 🧩 Reference to pending booking to avoid duplicates
   refEvent: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "PendingBooking",
-    required: true,
   },
+  
+  // 📅 Enhanced Timeline with performer info
   timeline: [
     {
       action: String,
       timestamp: { type: Date, default: Date.now },
+      performedBy: { type: String, default: "System" },
       notes: String,
     },
   ],
 }
   , { timestamps: true });
 
+// Add indexes (bookingId already has unique:true in schema)
+BookedSchema.index({ eventDate: 1 });
+BookedSchema.index({ bookingStatus: 1 });
+BookedSchema.index({ 'assignedStaffDetails.workers': 1 });
+BookedSchema.index({ 'assignedStaffDetails.chefs': 1 });
+BookedSchema.index({ 'assignedVehicles': 1 });
+
 BookedSchema.pre("save", async function (next) {
   if (!this.bookingId) {
-    const lastBooking = await this.constructor.findOne().sort({ createdAt: -1 });
-    let newNumber = 1;
+    this.bookingId = await generateBookingId('BOOK');
+
     if(this.paymentDetails.totalPaid >= this.totalAmount){
       this.paymentStatus = "Paid";
       this.paymentDetails.fullyPaid = true;
     }
     this.deposited = this.paymentDetails.totalPaid;
-
-    if (lastBooking && lastBooking.bookingId) {
-      const lastNum = parseInt(lastBooking.bookingId.replace("BOOK", ""), 10);
-      newNumber = lastNum + 1;
-    }
-
-    this.bookingId = `BOOK${String(newNumber).padStart(4, "0")}`;
   }
 
   // Auto-calculate balance
-  this.balance = Math.max(this.totalAmount - this.deposited, 0);
+  this.balance = Math.max((this.totalAmount || 0) - (this.deposited || 0), 0);
 
   next();
 });

@@ -149,15 +149,15 @@ const Employees: React.FC = () => {
 
       {/* Employee Cards */}
       <div className="grid gap-6">
-        {employees.map((employee) => (
-          <Card key={employee._id} className="hover:shadow-md transition-shadow">
+        {(employees || []).map((employee) => (
+          <Card key={employee?._id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
-                    <AvatarImage src={employee.profilePic} alt={employee.name} />
+                    <AvatarImage src={employee?.profilePic || ''} alt={employee?.name} />
                     <AvatarFallback>
-                      {(employee.name &&
+                      {(employee?.name &&
                         employee.name
                           .split(" ")
                           .map((n, i, arr) =>
@@ -169,15 +169,15 @@ const Employees: React.FC = () => {
                   </Avatar>
                   <div className='flex flex-col'>
                     <CardTitle className="flex items-center gap-2">
-                      {employee.name}
-                      {getStatusBadge(employee.status)}
+                      {employee?.name}
+                      {getStatusBadge(employee?.status)}
                     </CardTitle>
-                    <p className="text-muted-foreground">{employee.degn || "Not Updated"}</p>
-                    <span className='text-muted-foreground text-xs'>Employee ID: {employee.empID}</span>
+                    <p className="text-muted-foreground">{employee?.degn || "Not Updated"}</p>
+                    <span className='text-muted-foreground text-xs'>Employee ID: {employee?.empID}</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-foreground">{employee.assignedProject || "N/A"}</p>
+                  <p className="text-2xl font-bold text-foreground">{employee?.assignedProject || "N/A"}</p>
                   <p className="text-sm text-muted-foreground">Active Projects</p>
                 </div>
               </div>
@@ -186,22 +186,22 @@ const Employees: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{employee.email}</span>
+                  <span className="text-sm">{employee?.email}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{employee.phone}</span>
+                  <span className="text-sm">{employee?.phone}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{employee.location || "Not Updated"}</span>
+                  <span className="text-sm">{employee?.location || "Not Updated"}</span>
                 </div>
               </div>
 
               <div className="mb-4">
                 <p className="text-sm text-muted-foreground mb-2">Skills & Specialties</p>
                 <div className="flex flex-wrap gap-2">
-                  {employee.skills.map((skill, index) => (
+                  {employee?.skills.map((skill, index) => (
                     <Badge key={index} variant="outline">
                       {skill}
                     </Badge>
@@ -210,8 +210,8 @@ const Employees: React.FC = () => {
               </div>
 
               <div className="flex justify-between items-center text-sm text-muted-foreground">
-                <span>Joined: {new Date(employee.joiningDate).toLocaleDateString()}</span>
-                <Button size="xs"  onClick={()=>deleteEmployee(employee._id)} leftSection={<IconTrash className='w-5 h-5' />} variant="filled" color='red'>Delete Employee</Button>
+                <span>Joined: {new Date(employee?.joiningDate).toLocaleDateString()}</span>
+                <Button size="xs"  onClick={()=>deleteEmployee(employee?._id)} leftSection={<IconTrash className='w-5 h-5' />} variant="filled" color='red'>Delete Employee</Button>
               </div>
             </CardContent>
           </Card>

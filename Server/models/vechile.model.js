@@ -22,4 +22,7 @@ vehicleSchema.pre('findOneAndUpdate', function (next) {
     next();
 });
 
+// Add indexes before creating model (plateNumber already has unique:true)
+vehicleSchema.index({ status: 1 });
+
 export default mongoose.model('Vehicle', vehicleSchema);

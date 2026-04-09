@@ -26,17 +26,17 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <StatsCard
           title="Pending Bookings"
-          value={bookingLoading ? 'Loading...' : pendingBookings.length}
+          value={bookingLoading ? 'Loading...' : (pendingBookings?.length || 0)}
           icon={<Users className="h-6 w-6 text-primary" />}
         />
         <StatsCard
           title="Completed"
-          value={employeeLoading ? 'Loading...' : completedBookings.length}
+          value={employeeLoading ? 'Loading...' : (completedBookings?.length || 0)}
           icon={<Package className="h-6 w-6 text-primary" />}
         />
         <StatsCard
           title="Employees"
-          value={employeeLoading ? 'Loading...' : employees.length}
+          value={employeeLoading ? 'Loading...' : (employees?.length || 0)}
           icon={<Users className="h-6 w-6 text-primary" />}
         />
         <div className="hidden xl:block">

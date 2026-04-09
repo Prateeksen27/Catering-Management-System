@@ -1,6 +1,6 @@
 import Ticket from '../models/ticket.model.js';
 import Employee from '../models/user.model.js';
-import Booked from '../models/Booked.model.js';
+import pendingBooking from '../models/pendingBooking.model.js';
 
 // Status transition validation
 const VALID_TRANSITIONS = {
@@ -17,6 +17,8 @@ export const createTicket = async (req, res) => {
   try {
     const { title, description, priority, assignedTo, relatedBooking, dueDate, attachments } = req.body;
     const createdBy = req.user.id;
+    console.log(req.body);
+    
 
     // Validate required fields
     if (!title || !description || !assignedTo || !dueDate) {
@@ -53,7 +55,7 @@ export const createTicket = async (req, res) => {
 
     // Validate relatedBooking if provided
     if (relatedBooking) {
-      const booking = await Booked.findById(relatedBooking);
+      const booking = await pendingBooking.findById(relatedBooking);
       if (!booking) {
         return res.status(404).json({ success: false, message: 'Booking not found' });
       }
@@ -80,7 +82,7 @@ export const createTicket = async (req, res) => {
 
     // Update booking timeline if relatedBooking exists
     if (relatedBooking) {
-      await Booked.findByIdAndUpdate(relatedBooking, {
+      await pendingBooking.findByIdAndUpdate(relatedBooking, {
         $push: {
           timeline: {
             action: 'Task Created',
@@ -93,6 +95,7 @@ export const createTicket = async (req, res) => {
     // Populate the ticket for response
     await ticket.populate('assignedTo', 'name empType email');
     await ticket.populate('createdBy', 'name empType email');
+    await ticket.populate('relatedBooking', 'bookingId eventName eventDate');
 
     res.status(201).json({ success: true, ticket });
   } catch (error) {
@@ -115,7 +118,7 @@ export const getAllTickets = async (req, res) => {
     const tickets = await Ticket.find(filter)
       .populate('assignedTo', 'name empType email profilePic')
       .populate('createdBy', 'name empType email')
-      .populate('relatedBooking', 'bookingId eventName')
+      .populate('relatedBooking', 'bookingId eventName eventDate')
       .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, tickets });
@@ -138,7 +141,7 @@ export const getMyTasks = async (req, res) => {
     const tickets = await Ticket.find({ assignedTo: userId })
       .populate('assignedTo', 'name empType email profilePic')
       .populate('createdBy', 'name empType email')
-      .populate('relatedBooking', 'bookingId eventName')
+      .populate('relatedBooking', 'bookingId eventName eventDate')
       .sort({ createdAt: -1 });
 
     // Get status counts for dashboard
@@ -209,6 +212,7 @@ export const updateTicketStatus = async (req, res) => {
 
     await ticket.populate('assignedTo', 'name empType email');
     await ticket.populate('createdBy', 'name empType email');
+    await ticket.populate('relatedBooking', 'bookingId eventName eventDate');
 
     res.status(200).json({ success: true, ticket });
   } catch (error) {
@@ -273,6 +277,7 @@ export const reassignTicket = async (req, res) => {
 
     await ticket.populate('assignedTo', 'name empType email');
     await ticket.populate('createdBy', 'name empType email');
+    await ticket.populate('relatedBooking', 'bookingId eventName eventDate');
 
     res.status(200).json({ success: true, ticket });
   } catch (error) {
@@ -320,6 +325,7 @@ export const closeTicket = async (req, res) => {
 
     await ticket.populate('assignedTo', 'name empType email');
     await ticket.populate('createdBy', 'name empType email');
+    await ticket.populate('relatedBooking', 'bookingId eventName eventDate');
 
     res.status(200).json({ success: true, ticket });
   } catch (error) {
@@ -362,6 +368,7 @@ export const addComment = async (req, res) => {
 
     await ticket.populate('assignedTo', 'name empType email');
     await ticket.populate('createdBy', 'name empType email');
+    await ticket.populate('relatedBooking', 'bookingId eventName eventDate');
     await ticket.populate('activityLog.performedBy', 'name empType');
 
     res.status(200).json({ success: true, ticket });
@@ -415,6 +422,7 @@ export const addAttachment = async (req, res) => {
 
     await ticket.populate('assignedTo', 'name empType email');
     await ticket.populate('createdBy', 'name empType email');
+    await ticket.populate('relatedBooking', 'bookingId eventName eventDate');
 
     res.status(200).json({ success: true, ticket });
   } catch (error) {
@@ -515,3 +523,4 @@ export const getTicketStats = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+

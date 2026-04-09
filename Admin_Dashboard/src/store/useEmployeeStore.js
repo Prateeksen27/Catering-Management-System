@@ -9,19 +9,16 @@ export const useEmployeeStore = create((set) => ({
     assignedEvents:[],
     createNewEmployee: async (data) => {
         try {
+            const loadingToastId = toast.loading("Adding...please don't refresh");
             const responce = await axiosInstance.post('/auth/register', data)
-            await toast.promise(
-                responce, {
-                loading: "Adding...please don't refresh",
-                success: "Employee Added Successfully",
-                error: (err) =>
-                    err.response?.data?.message || "Something went wrong. Try again!"
-            }
-            )
+            toast.success("Employee Added Successfully", { id: loadingToastId });
+            set((state) => ({
+                employees: [...state.employees, responce.data.newUser]
+            }))
         } catch (error) {
             console.log("Employee Error", error);
-            // toast.error(error.responce?.data?.message || "Unexpected error occur")
 
+            toast.error(error.response?.data?.message || "Unexpected error occur", { id: loadingToastId });
         }
     },
     fetchAllEmployees: async (data) => {

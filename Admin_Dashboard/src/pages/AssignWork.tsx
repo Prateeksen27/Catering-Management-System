@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import toast from 'react-hot-toast';
 import {
   Table,
   TableBody,
@@ -75,11 +76,12 @@ const AssignWork: React.FC = () => {
   const { user } = useAuthStore();
   const { tickets, fetchAllTickets, createTicket, isLoading } = useTicketStore();
   const { employees, fetchAllEmployees } = useEmployeeStore();
-  const { booked, fetchAllBookedEvents } = useBookingStore();
+  const { booked, fetchAllBookedEvents, fetchActiveEvents } = useBookingStore();
 
   const [createModalOpened, setCreateModalOpened] = useState(false);
   const [viewModalOpened, setViewModalOpened] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [activeEvents, setActiveEvents] = useState<any[]>([]);
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -107,6 +109,13 @@ const AssignWork: React.FC = () => {
     }
   }, [isAdminOrManager]);
 
+  // Fetch active events when modal opens
+  useEffect(() => {
+    if (createModalOpened) {
+      fetchActiveEvents().then(events => setActiveEvents(events));
+    }
+  }, [createModalOpened]);
+
   // Filter tickets
   const filteredTickets = tickets.filter((ticket) => {
     if (statusFilter !== 'all' && ticket.status !== statusFilter) return false;
@@ -123,6 +132,28 @@ const AssignWork: React.FC = () => {
   });
 
   const handleCreateTicket = async () => {
+    // Validate required fields
+    if (!formData.title) {
+      toast.error("Please enter a ticket title");
+      return;
+    }
+    if (!formData.description) {
+      toast.error("Please enter a description");
+      return;
+    }
+    if (!formData.assignedTo || formData.assignedTo === 'none') {
+      toast.error("Please select an employee to assign");
+      return;
+    }
+    if (!formData.dueDate) {
+      toast.error("Please select a due date");
+      return;
+    }
+    if (!formData.relatedBooking || formData.relatedBooking === 'none') {
+      toast.error("Please select the related event");
+      return;
+    }
+
     try {
       await createTicket({
         ...formData,
@@ -377,17 +408,17 @@ const AssignWork: React.FC = () => {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Related Event (Optional)</label>
+            <label className="text-sm font-medium">Related Event *</label>
             <NativeSelect
               mt="xs"
               value={formData.relatedBooking}
               onChange={(e) => setFormData({ ...formData, relatedBooking: e.currentTarget.value })}
               data={[
-                { value: 'none', label: 'None' },
-                ...(Array.isArray(booked)
-                  ? booked.map((booking: any) => ({
-                    value: String(booking._id),
-                    label: `${booking.bookingId} - ${booking.eventName}`,
+                { value: 'none', label: 'Select Event' },
+                ...(Array.isArray(activeEvents)
+                  ? activeEvents.map((event: any) => ({
+                    value: String(event._id),
+                    label: `${event.eventName} - ${event.venue || 'Unknown Venue'} (${event.eventDate || 'No Date'})`,
                   }))
                   : []),
               ]}
@@ -405,6 +436,8 @@ const AssignWork: React.FC = () => {
                 !formData.assignedTo ||
                 formData.assignedTo === 'none' ||
                 !formData.dueDate ||
+                !formData.relatedBooking ||
+                formData.relatedBooking === 'none' ||
                 isLoading
               }
             >
