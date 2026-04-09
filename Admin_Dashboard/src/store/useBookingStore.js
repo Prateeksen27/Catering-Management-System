@@ -247,7 +247,7 @@ export const useBookingStore = create((set, get) => ({
             set({ isLoading: false });
             return response.data.bookings || [];
         } catch (error) {
-            console.log(error);
+            
             toast.error(`Error fetching ${status} bookings`);
             set({ isLoading: false });
             return [];

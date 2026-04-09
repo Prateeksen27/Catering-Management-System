@@ -46,7 +46,6 @@ export const useChefRequirementStore = create((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
-      console.log(error);
       toast.error("Error fetching requirements");
       set({ isLoading: false });
     }

@@ -4,6 +4,7 @@
  */
 
 import mongoose from "mongoose";
+import Employee from "../models/user.model.js";
 
 /**
  * Get user details for timeline logging

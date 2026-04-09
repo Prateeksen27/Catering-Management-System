@@ -18,7 +18,20 @@ import {
 import StatsCard from "@/components/dashboard/StatsCard";
 import { useBookingStore } from "@/store/useBookingStore";
 import { useChefRequirementStore } from "@/store/useChefRequirementStore";
+import { useEmployeeStore } from "@/store/useEmployeeStore";
+import { useTicketStore } from "@/store/useTicketStore";
 import toast from "react-hot-toast";
+import { Modal, TextInput, Textarea, Select } from "@mantine/core";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select as ShadSelect,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Status badges
 const StatusBadge = ({ status }) => {
@@ -43,24 +56,123 @@ const StatusBadge = ({ status }) => {
 };
 
 // Chef Requirements Review Section
-const ChefRequirementsReview = ({ onApprove, onReject }) => {
+const ChefRequirementsReview = () => {
   const { requirements, fetchAllRequirements, updateRequirementStatus, isLoading } = useChefRequirementStore();
+  const { employees, fetchAllEmployees } = useEmployeeStore();
+  const { createTicket } = useTicketStore();
+  
+  const [modalOpened, setModalOpened] = useState(false);
+  const [selectedRequirement, setSelectedRequirement] = useState<any>(null);
+  const [workers, setWorkers] = useState<any[]>([]);
+  const [isCreatingTicket, setIsCreatingTicket] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'High',
+    assignedTo: 'none',
+    relatedBooking: 'none',
+    dueDate: '',
+  });
 
   useEffect(() => {
     fetchAllRequirements({ status: "Submitted" });
   }, []);
 
-  const handleApprove = async (id) => {
+  // Fetch workers when modal opens
+  useEffect(() => {
+    if (modalOpened) {
+      fetchAllEmployees().then(() => {
+        // Workers will be filtered after employees are loaded
+      });
+    }
+  }, [modalOpened]);
+
+  // Filter workers from employees
+  useEffect(() => {
+    const workerList = employees.filter((emp: any) => emp.empType === 'Worker');
+    setWorkers(workerList);
+  }, [employees]);
+
+  const handleApproveClick = (req: any) => {
+    setSelectedRequirement(req);
+    
+    // Get event name from booking
+    const eventName = req.bookingId?.eventDetails?.eventName || 'Event';
+    const bookingId = req.bookingId?._id || req.bookingId;
+    const bookingIdDisplay = req.bookingId?.bookingId || 'N/A';
+    const chefName = req.chefId?.name || 'Unknown Chef';
+    
+    // Format ingredients for description
+    const ingredientsList = req.ingredients?.map((ing: any) => ing.ingredientName).join('\n• ') || 'No ingredients listed';
+    const notes = req.notes || 'No notes from chef';
+    
+    // Calculate due date (eventDate - 1 day)
+    const eventDate = new Date(req.bookingId?.eventDetails?.eventDate);
+    const dueDate = new Date(eventDate);
+    dueDate.setDate(dueDate.getDate() - 1);
+    const dueDateStr = dueDate.toISOString().split('T')[0];
+    
+    // Pre-filled title
+    const title = `Purchase ingredients for ${eventName}`;
+    
+    // Pre-filled description
+    const description = `Chef ${chefName} has submitted ingredient requirements for this event.\n\nIngredients Required:\n• ${ingredientsList}\n\nNotes from Chef:\n${notes}`;
+    
+    setFormData({
+      title,
+      description,
+      priority: 'High',
+      assignedTo: 'none',
+      relatedBooking: bookingId,
+      dueDate: dueDateStr,
+    });
+    
+    setModalOpened(true);
+  };
+
+  const handleCreateTicket = async () => {
+    if (!selectedRequirement) return;
+    
+    // Validate
+    if (formData.assignedTo === 'none') {
+      toast.error("Please select a worker");
+      return;
+    }
+    
+    if (!formData.dueDate) {
+      toast.error("Please select a due date");
+      return;
+    }
+    
+    setIsCreatingTicket(true);
+    
     try {
-      await updateRequirementStatus(id, "Approved", "Approved by Manager");
-      toast.success("Requirement approved");
+      // First, approve the requirement
+      await updateRequirementStatus(selectedRequirement._id, "Approved", "Approved by Manager - Ticket created for procurement");
+      
+      // Then create the ticket
+      await createTicket({
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        assignedTo: formData.assignedTo,
+        relatedBooking: formData.relatedBooking,
+        dueDate: formData.dueDate,
+      });
+      
+      toast.success("Requirement approved and purchase task created!");
+      setModalOpened(false);
       fetchAllRequirements({ status: "Submitted" });
     } catch (error) {
-      toast.error("Failed to approve requirement");
+      console.error("Error creating ticket:", error);
+      toast.error("Failed to create purchase task");
+    } finally {
+      setIsCreatingTicket(false);
     }
   };
 
-  const handleReject = async (id) => {
+  const handleReject = async (id: string) => {
     try {
       await updateRequirementStatus(id, "Rejected", "Rejected by Manager");
       toast.success("Requirement rejected");
@@ -140,7 +252,7 @@ const ChefRequirementsReview = ({ onApprove, onReject }) => {
 
               <div className="flex gap-2">
                 <button
-                  onClick={() => handleApprove(req._id)}
+                  onClick={() => handleApproveClick(req)}
                   className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
                 >
                   <CheckCircle className="h-4 w-4" />
@@ -158,7 +270,139 @@ const ChefRequirementsReview = ({ onApprove, onReject }) => {
           ))}
         </div>
       )}
+
+      {/* Create Purchase Task Modal */}
+      <CreatePurchaseTaskModal
+        opened={modalOpened}
+        onClose={() => setModalOpened(false)}
+        formData={formData}
+        setFormData={setFormData}
+        workers={workers}
+        onSubmit={handleCreateTicket}
+        isLoading={isCreatingTicket}
+        selectedRequirement={selectedRequirement}
+      />
     </div>
+  );
+};
+
+// Create Purchase Task Modal Component
+const CreatePurchaseTaskModal = ({ opened, onClose, formData, setFormData, workers, onSubmit, isLoading, selectedRequirement }: any) => {
+  const bookingIdDisplay = selectedRequirement?.bookingId?.bookingId || 'N/A';
+  const ingredientsList = selectedRequirement?.ingredients?.map((ing: any) => ing.ingredientName).join(', ') || 'No ingredients listed';
+  const notes = selectedRequirement?.notes || 'No notes from chef';
+  
+  return (
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title="Create Purchase Task"
+      size="lg"
+    >
+      <div className="space-y-4">
+        {/* Title */}
+        <div>
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="Enter ticket title"
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Enter description"
+            rows={6}
+          />
+        </div>
+
+        {/* Priority */}
+        <div>
+          <Label htmlFor="priority">Priority</Label>
+          <Select
+            id="priority"
+            value={formData.priority}
+            onChange={(value) => setFormData({ ...formData, priority: value || 'Medium' })}
+            data={[
+              { value: 'Low', label: 'Low' },
+              { value: 'Medium', label: 'Medium' },
+              { value: 'High', label: 'High' },
+              { value: 'Critical', label: 'Critical' },
+            ]}
+          />
+        </div>
+
+        {/* Assigned Worker */}
+        <div>
+          <Label htmlFor="assignedTo">Assign Worker</Label>
+          <Select
+            id="assignedTo"
+            value={formData.assignedTo}
+            onChange={(value) => setFormData({ ...formData, assignedTo: value || 'none' })}
+            data={[
+              { value: 'none', label: 'Select Worker' },
+              ...workers.map((worker: any) => ({
+                value: worker._id,
+                label: worker.name
+              }))
+            ]}
+          />
+        </div>
+
+        {/* Related Booking */}
+        <div>
+          <Label htmlFor="relatedBooking">Related Booking</Label>
+          <Input
+            id="relatedBooking"
+            value={bookingIdDisplay}
+            disabled
+          />
+        </div>
+
+        {/* Due Date */}
+        <div>
+          <Label htmlFor="dueDate">Due Date</Label>
+          <Input
+            id="dueDate"
+            type="date"
+            value={formData.dueDate}
+            onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+          />
+        </div>
+
+        {/* Chef Requirements Display */}
+        <div className="border-t pt-4 mt-4">
+          <h3 className="font-semibold mb-2">Chef Requirements</h3>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="mb-2">
+              <span className="font-medium text-sm">Ingredients:</span>
+              <p className="text-sm text-gray-600">{ingredientsList}</p>
+            </div>
+            <div>
+              <span className="font-medium text-sm">Notes:</span>
+              <p className="text-sm text-gray-600">{notes}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={onSubmit} disabled={isLoading}>
+            {isLoading ? 'Creating...' : 'Create Ticket'}
+          </Button>
+        </div>
+      </div>
+    </Modal>
   );
 };
 
