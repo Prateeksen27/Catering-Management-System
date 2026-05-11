@@ -1,0 +1,22 @@
+module.exports = {
+  testEnvironment: 'node',
+  preset: 'ts-jest',
+  testMatch: ['**/tests/api/**/*.test.js', '**/tests/integration/**/*.test.js', '**/tests/security/**/*.test.js'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  coverageDirectory: 'coverage',
+  collectCoverageFrom: [
+    'Server/**/*.js',
+    '!Server/node_modules/**',
+    '!Server/dist/**',
+  ],
+  coverageReporters: ['text', 'lcov', 'html', 'clover'],
+  moduleFileExtensions: ['js', 'jsx', 'json', 'node'],
+  roots: ['<rootDir>'],
+  testTimeout: 30000,
+  setupFilesAfterEnv: ['<rootDir>/tests/config/setup.js'],
+  verbose: true,
+  forceExit: true,
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
+};
