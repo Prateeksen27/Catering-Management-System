@@ -37,6 +37,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ["http://localhost:8080", "http://localhost:5173", "http://localhost:8081","https://catering-management-system-three.vercel.app"];
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Rate limiting configuration
 const generalLimiter = rateLimit({
